@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Laboratorio de Módulo - Análisis Visual</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
+    <style>
+        body { display: flex; flex-direction: column; align-items: center; background-color: #f4f7f6; color: #2c3e50; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
+        .panel { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 1000px; max-width: 95%; }
+        .formula-ref { background: #2c3e50; color: #ecf0f1; padding: 10px; border-radius: 8px; text-align: center; font-family: monospace; font-size: 1.2em; margin-bottom: 20px; }
+        .controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        .control-group { display: flex; flex-direction: column; align-items: center; font-size: 0.8em; font-weight: bold; min-width: 80px; }
+        .math-box { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .case { padding: 15px; border-radius: 10px; border-top: 4px solid #3498db; background: #ebf5fb; font-size: 0.9em; line-height: 1.5; min-height: 220px; display: flex; flex-direction: column; }
+        .case.neg { border-top-color: #e74c3c; background: #fdedec; }
+        .condicion-despeje { background: rgba(255,255,255,0.7); padding: 12px; border-radius: 5px; margin: 10px 0; font-family: monospace; border: 1px dashed #aaa; text-align: center; font-size: 1.1em; }
+        .btn-validar { cursor: pointer; padding: 10px 15px; border-radius: 5px; border: none; font-weight: bold; transition: 0.3s; margin-top: auto; width: 100%; font-size: 1em; }
+        .btn-espera { background: #f39c12; color: white; }
+        .btn-error { background: #e74c3c; color: white; }
+        .btn-exito { background: #27ae60; color: white; }
+        canvas { border: 1px solid #ccc; margin-top: 20px; border-radius: 10px; background: white; width: 100%; max-width: 950px; }
+        .step-math { font-family: monospace; font-size: 1.1em; background: rgba(255,255,255,0.6); padding: 10px; border-radius: 5px; margin-bottom: 15px; }
+        #conclusion-panel { display: none; margin-top: 20px; padding: 15px; background: #e8f8f5; border: 2px solid #1abc9c; border-radius: 10px; text-align: center; font-size: 1.4em; color: #16a085; }
+    </style>
+</head>
+<body>
+
+<div class="panel">
+    <div class="formula-ref">Ecuación: a |bx - h| + k + nx = e + mx</div>
+    
+    <div class="controls">
+        <div class="control-group"><label>a</label><input type="range" id="slA" min="-10" max="10" step="0.5" value="2"><span id="vA"></span></div>
+        <div class="control-group"><label>b</label><input type="range" id="slB" min="-10" max="10" step="0.5" value="3"><span id="vB"></span></div>
+        <div class="control-group"><label>h</label><input type="range" id="slH" min="-10" max="10" step="0.5" value="5"><span id="vH"></span></div>
+        <div class="control-group"><label>k</label><input type="range" id="slK" min="-10" max="10" step="0.5" value="4"><span id="vK"></span></div>
+        <div class="control-group"><label>n</label><input type="range" id="slN" min="-10" max="10" step="0.5" value="5"><span id="vN"></span></div>
+        <div class="control-group"><label>e</label><input type="range" id="slE" min="-10" max="10" step="0.5" value="7"><span id="vE"></span></div>
+        <div class="control-group"><label>m</label><input type="range" id="slM" min="-10" max="10" step="0.5" value="-3"><span id="vM"></span></div>
+    </div>
+
+    <div style="font-size: 1.6em; text-align: center; margin-bottom: 20px; color: #2980b9;">
+        <strong><span id="eqActual"></span></strong>
+    </div>
+
+    <div class="math-box">
+        <div class="case">
+            <strong>Caso 1: Interior Positivo (≥ 0)</strong>
+            <div class="condicion-despeje" id="despejeC1"></div>
+            <div id="step1" class="step-math"></div>
+            <button id="btn1" class="btn-validar btn-espera" onclick="verificar(1)">Verificar observando la recta 👇</button>
+        </div>
+        <div class="case neg">
+            <strong>Caso 2: Interior Negativo (< 0)</strong>
+            <div class="condicion-despeje" id="despejeC2"></div>
+            <div id="step2" class="step-math"></div>
+            <button id="btn2" class="btn-validar btn-espera" onclick="verificar(2)">Verificar observando la recta 👇</button>
+        </div>
+    </div>
+
+    <div id="conclusion-panel">
+        <strong>Solución Final:</strong> <span id="solucion-final-text"></span>
+    </div>
+</div>
+
+<div id="canvas-container"></div>
+
+<script>
+let escala = 30, centroX;
+let resX1 = null, resX2 = null;
+let esValida1 = false, esValida2 = false;
+let validado1 = false, validado2 = false;
+
+function setup() {
+    let c = createCanvas(950, 220); 
+    c.parent('canvas-container');
+    centroX = width / 2;
+}
+
+function draw() {
+    background(255);
+    let a = parseFloat(document.getElementById('slA').value);
+    let b = parseFloat(document.getElementById('slB').value);
+    if (b === 0) b = 0.001; // Prevención matemática
+    let h = parseFloat(document.getElementById('slH').value);
+    let k = parseFloat(document.getElementById('slK').value);
+    let n = parseFloat(document.getElementById('slN').value);
+    let e = parseFloat(document.getElementById('slE').value);
+    let m = parseFloat(document.getElementById('slM').value);
+
+    document.querySelectorAll('.controls span').forEach(s => {
+        let id = s.id.replace('v', 'sl');
+        s.innerText = document.getElementById(id).value;
+    });
+
+    let hSign = h >= 0 ? "-" : "+";
+    let hAbs = Math.abs(h);
+    let kSign = k >= 0 ? "+" : "-";
+    let kAbs = Math.abs(k);
+    let nPart = n === 0 ? "" : (n > 0 ? `+ ${n}x` : `- ${Math.abs(n)}x`);
+    let mPart = m === 0 ? "" : (m > 0 ? `+ ${m}x` : `- ${Math.abs(m)}x`);
+    let aText = a === 1 ? "" : (a === -1 ? "-" : a);
+    let bText = b === 1 ? "" : (b === -1 ? "-" : b);
+
+    document.getElementById('eqActual').innerText = `${aText}|${bText}x ${hSign} ${hAbs}| ${k !== 0 ? kSign+' '+kAbs : ''} ${nPart} = ${e} ${mPart}`;
+
+    let hCritico = h / b;
+    let bPos = b > 0;
+    
+    // Al dividir por negativo, la inecuación se invierte
+    let ineq1 = bPos ? "≥" : "≤";
+    let ineq2 = bPos ? "<" : ">";
+
+    // Condiciones visuales
+    let htmlC1 = `${bText}x ${hSign} ${hAbs} ≥ 0<br>`;
+    htmlC1 += `${bText}x ≥ ${h}<br>`;
+    htmlC1 += Math.abs(b) !== 1 ? `x ${ineq1} ${h}/${b} <br><span style="color:#27ae60"><strong>x ${ineq1} ${hCritico.toFixed(2)}</strong></span>` : `<span style="color:#27ae60"><strong>x ${ineq1} ${hCritico.toFixed(2)}</strong></span>`;
+    document.getElementById('despejeC1').innerHTML = htmlC1;
+
+    let htmlC2 = `${bText}x ${hSign} ${hAbs} < 0<br>`;
+    htmlC2 += `${bText}x < ${h}<br>`;
+    htmlC2 += Math.abs(b) !== 1 ? `x ${ineq2} ${h}/${b} <br><span style="color:#27ae60"><strong>x ${ineq2} ${hCritico.toFixed(2)}</strong></span>` : `<span style="color:#27ae60"><strong>x ${ineq2} ${hCritico.toFixed(2)}</strong></span>`;
+    document.getElementById('despejeC2').innerHTML = htmlC2;
+
+    let bStr = bText;
+    let interiorMod = `${bStr}x ${hSign} ${hAbs}`;
+    let kStr = k === 0 ? "" : (k > 0 ? `+ ${k}` : `- ${kAbs}`);
+    let rhs = `${e} ${mPart}`; 
+
+    // --- RESOLUCIÓN CASO 1 ---
+    let den1 = (a * b) + n - m;
+    let num1 = e - k + (a * h);
+    
+    let pasos1 = "";
+    if (a !== 1) pasos1 += `${a}(${interiorMod}) ${kStr} ${nPart} = ${rhs}<br>`; 
+    
+    let a_h = a * -h;
+    let a_h_str = a_h === 0 ? "" : (a_h > 0 ? `+ ${a_h}` : `- ${Math.abs(a_h)}`);
+    pasos1 += `${a*b}x ${a_h_str} ${kStr} ${nPart} = ${rhs}<br>`;
+
+    if (den1 !== 0) {
+        resX1 = num1 / den1;
+        esValida1 = bPos ? (resX1 >= hCritico - 0.001) : (resX1 <= hCritico + 0.001);
+        pasos1 += `${den1}x = ${num1}<br><strong>x₁ = ${resX1.toFixed(2)}</strong>`;
+        document.getElementById('btn1').style.display = 'block';
+    } else {
+        resX1 = null;
+        esValida1 = false;
+        pasos1 += `0x = ${num1}<br><strong>Sin solución lineal</strong>`;
+        document.getElementById('btn1').style.display = 'none';
+        validado1 = true; 
+    }
+    document.getElementById('step1').innerHTML = pasos1;
+
+    // --- RESOLUCIÓN CASO 2 ---
+    let den2 = (-a * b) + n - m;
+    let num2 = e - k - (a * h);
+    
+    let pasos2 = "";
+    if (a === 1) pasos2 += `-( ${interiorMod} ) ${kStr} ${nPart} = ${rhs}<br>`; 
+    else pasos2 += `${a}[-( ${interiorMod} )] ${kStr} ${nPart} = ${rhs}<br>`; 
+
+    let a_h_neg = a * h;
+    let a_h_neg_str = a_h_neg === 0 ? "" : (a_h_neg > 0 ? `+ ${a_h_neg}` : `- ${Math.abs(a_h_neg)}`);
+    pasos2 += `${-a*b}x ${a_h_neg_str} ${kStr} ${nPart} = ${rhs}<br>`;
+
+    if (den2 !== 0) {
+        resX2 = num2 / den2;
+        esValida2 = bPos ? (resX2 < hCritico + 0.001) : (resX2 > hCritico - 0.001);
+        pasos2 += `${den2}x = ${num2}<br><strong>x₂ = ${resX2.toFixed(2)}</strong>`;
+        document.getElementById('btn2').style.display = 'block';
+    } else {
+        resX2 = null;
+        esValida2 = false;
+        pasos2 += `0x = ${num2}<br><strong>Sin solución lineal</strong>`;
+        document.getElementById('btn2').style.display = 'none';
+        validado2 = true; 
+    }
+    document.getElementById('step2').innerHTML = pasos2;
+
+    dibujarRecta(1, 70, hCritico, resX1, `Recta Caso 1 (x ${ineq1} ${hCritico.toFixed(2)})`, "#3498db", "x₁", bPos);
+    dibujarRecta(2, 160, hCritico, resX2, `Recta Caso 2 (x ${ineq2} ${hCritico.toFixed(2)})`, "#e74c3c", "x₂", bPos);
+    
+    chequearSolucionFinal();
+}
+
+function dibujarRecta(caso, y, hCritico, xVal, titulo, colorPunto, labelPunto, bPos) {
+    fill(100); noStroke(); textAlign(LEFT); textSize(12); textStyle(BOLD);
+    text(titulo, 20, y - 35);
+    textStyle(NORMAL);
+
+    stroke(200); line(40, y, width-40, y);
+    for(let i=-15; i<=15; i++) {
+        let px = centroX + i*escala;
+        stroke(200); line(px, y-5, px, y+5);
+        if(i % 2 === 0 || i === 0) { 
+            noStroke(); fill(150); textAlign(CENTER); textSize(10); text(i, px, y+18);
+        }
+    }
+
+    let pxCritico = centroX + hCritico * escala;
+    strokeWeight(4);
+    stroke(46, 204, 113, 180); 
+    
+    let vaHaciaDerecha = (caso === 1 && bPos) || (caso === 2 && !bPos);
+
+    if (vaHaciaDerecha) {
+        line(pxCritico, y, width - 40, y);
+        line(width - 40, y, width - 48, y - 6);
+        line(width - 40, y, width - 48, y + 6);
+    } else {
+        line(pxCritico, y, 40, y);
+        line(40, y, 48, y - 6);
+        line(40, y, 48, y + 6);
+    }
+    
+    if (caso === 1) {
+        fill(46, 204, 113); noStroke(); 
+        ellipse(pxCritico, y, 12, 12);
+    } else {
+        fill(255); stroke(46, 204, 113, 200); strokeWeight(3);
+        ellipse(pxCritico, y, 12, 12);
+    }
+    strokeWeight(1); 
+
+    if(xVal !== null) {
+        let pxSol = centroX + xVal * escala;
+        if (pxSol >= 0 && pxSol <= width) {
+            fill(colorPunto); noStroke(); ellipse(pxSol, y, 14, 14);
+            fill(50); textSize(12); textStyle(BOLD); textAlign(CENTER);
+            text(labelPunto + "=" + xVal.toFixed(2), pxSol, y - 15);
+            textStyle(NORMAL);
+        }
+    }
+}
+
+function verificar(caso) {
+    let b = parseFloat(document.getElementById('slB').value);
+    if (b === 0) b = 0.001;
+    let h = parseFloat(document.getElementById('slH').value);
+    let hCritico = h / b;
+    let bPos = b > 0;
+    
+    let ineq1 = bPos ? "≥" : "≤";
+    let ineq2 = bPos ? "<" : ">";
+
+    if(caso === 1 && resX1 !== null) {
+        validado1 = true;
+        if(esValida1) {
+            document.getElementById('btn1').innerText = `¡CORRECTO! Está en la zona verde (x ${ineq1} ${hCritico.toFixed(2)})`;
+            document.getElementById('btn1').className = "btn-validar btn-exito";
+        } else {
+            document.getElementById('btn1').innerText = "DESCARTADA: El punto azul cayó fuera de la zona";
+            document.getElementById('btn1').className = "btn-validar btn-error";
+        }
+    } else if (caso === 2 && resX2 !== null) {
+        validado2 = true;
+        if(esValida2) {
+            document.getElementById('btn2').innerText = `¡CORRECTO! Está en la zona verde (x ${ineq2} ${hCritico.toFixed(2)})`;
+            document.getElementById('btn2').className = "btn-validar btn-exito";
+        } else {
+            document.getElementById('btn2').innerText = "DESCARTADA: El punto rojo cayó fuera de la zona";
+            document.getElementById('btn2').className = "btn-validar btn-error";
+        }
+    }
+    
+    chequearSolucionFinal();
+}
+
+function chequearSolucionFinal() {
+    if (validado1 && validado2) {
+        let conjuntoNums = [];
+        
+        if (esValida1 && resX1 !== null) conjuntoNums.push(resX1);
+        if (esValida2 && resX2 !== null) conjuntoNums.push(resX2);
+        
+        conjuntoNums.sort((a, b) => a - b);
+        let conjuntoFormateado = conjuntoNums.map(n => n.toFixed(2));
+        
+        let textoFinal = "";
+        if (conjuntoFormateado.length === 0) {
+            textoFinal = "S = ∅ (No hay solución real)";
+        } else {
+            textoFinal = "S = { " + conjuntoFormateado.join(" ; ") + " }";
+        }
+        
+        document.getElementById('solucion-final-text').innerText = textoFinal;
+        document.getElementById('conclusion-panel').style.display = 'block';
+    }
+}
+
+document.querySelectorAll('input').forEach(i => i.oninput = () => {
+    validado1 = false; validado2 = false;
+    document.getElementById('conclusion-panel').style.display = 'none';
+    document.getElementById('btn1').className = "btn-validar btn-espera";
+    document.getElementById('btn1').innerText = "Verificar observando la recta 👇";
+    document.getElementById('btn2').className = "btn-validar btn-espera";
+    document.getElementById('btn2').innerText = "Verificar observando la recta 👇";
+});
+</script>
+</body>
+</html>
