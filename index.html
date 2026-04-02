@@ -2,25 +2,164 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Laboratorio de Módulo - Análisis Visual</title>
+    <!-- ETIQUETA CLAVE PARA APPS: Hace que sea responsivo y prohíbe el zoom -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Laboratorio de Módulo - App Móvil</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
     <style>
-        body { display: flex; flex-direction: column; align-items: center; background-color: #f4f7f6; color: #2c3e50; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
-        .panel { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 1000px; max-width: 95%; }
-        .formula-ref { background: #2c3e50; color: #ecf0f1; padding: 10px; border-radius: 8px; text-align: center; font-family: monospace; font-size: 1.2em; margin-bottom: 20px; }
-        .controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
-        .control-group { display: flex; flex-direction: column; align-items: center; font-size: 0.8em; font-weight: bold; min-width: 80px; }
-        .math-box { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .case { padding: 15px; border-radius: 10px; border-top: 4px solid #3498db; background: #ebf5fb; font-size: 0.9em; line-height: 1.5; min-height: 220px; display: flex; flex-direction: column; }
+        /* Ajuste global para evitar márgenes ocultos */
+        * { box-sizing: border-box; }
+        
+        body { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            background-color: #f4f7f6; 
+            color: #2c3e50; 
+            font-family: 'Segoe UI', sans-serif; 
+            margin: 0; 
+            padding: 10px; /* Padding reducido para aprovechar el celu */
+            /* Evita el doble toque para zoom en celulares */
+            touch-action: manipulation; 
+            overscroll-behavior-y: none;
+        }
+        
+        .panel { 
+            background: white; 
+            padding: 15px; /* Padding más compacto */
+            border-radius: 15px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 950px; 
+        }
+        
+        .formula-ref { 
+            background: #2c3e50; 
+            color: #ecf0f1; 
+            padding: 10px; 
+            border-radius: 8px; 
+            text-align: center; 
+            font-family: monospace; 
+            font-size: 1.1em; 
+            margin-bottom: 20px; 
+            word-wrap: break-word;
+        }
+        
+        /* Controles adaptables a cualquier pantalla */
+        .controls { 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            gap: 15px; 
+            margin-bottom: 20px; 
+            padding-bottom: 20px; 
+            border-bottom: 1px solid #eee; 
+        }
+        
+        .control-group { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            font-size: 0.9em; 
+            font-weight: bold; 
+            flex: 1 1 calc(25% - 15px); /* Ocupa 1/4 en tablets, y se achica en celus */
+            min-width: 70px; 
+        }
+        
+        input[type="range"] {
+            width: 100%;
+        }
+        
+        /* Cajas de matemáticas responsivas */
+        .math-box { 
+            display: grid; 
+            grid-template-columns: 1fr; /* Por defecto (celular): apilados */
+            gap: 20px; 
+        }
+        
+        /* Si la pantalla es ancha (horizontal o tablet), se ponen lado a lado */
+        @media (min-width: 768px) {
+            .math-box { grid-template-columns: 1fr 1fr; }
+        }
+        
+        .case { 
+            padding: 15px; 
+            border-radius: 10px; 
+            border-top: 4px solid #3498db; 
+            background: #ebf5fb; 
+            font-size: 0.9em; 
+            line-height: 1.5; 
+            display: flex; 
+            flex-direction: column; 
+            min-height: auto;
+        }
         .case.neg { border-top-color: #e74c3c; background: #fdedec; }
-        .condicion-despeje { background: rgba(255,255,255,0.7); padding: 12px; border-radius: 5px; margin: 10px 0; font-family: monospace; border: 1px dashed #aaa; text-align: center; font-size: 1.1em; }
-        .btn-validar { cursor: pointer; padding: 10px 15px; border-radius: 5px; border: none; font-weight: bold; transition: 0.3s; margin-top: auto; width: 100%; font-size: 1em; }
+        
+        .condicion-despeje { 
+            background: rgba(255,255,255,0.7); 
+            padding: 10px; 
+            border-radius: 5px; 
+            margin: 10px 0; 
+            font-family: monospace; 
+            border: 1px dashed #aaa; 
+            text-align: center; 
+            font-size: 1.1em; 
+        }
+        
+        .btn-validar { 
+            cursor: pointer; 
+            padding: 12px 15px; /* Botones más altos para tocarlos fácil con el dedo */
+            border-radius: 8px; 
+            border: none; 
+            font-weight: bold; 
+            transition: 0.3s; 
+            margin-top: auto; 
+            width: 100%; 
+            font-size: 1em; 
+        }
+        
         .btn-espera { background: #f39c12; color: white; }
         .btn-error { background: #e74c3c; color: white; }
         .btn-exito { background: #27ae60; color: white; }
-        canvas { border: 1px solid #ccc; margin-top: 20px; border-radius: 10px; background: white; width: 100%; max-width: 950px; }
-        .step-math { font-family: monospace; font-size: 1.1em; background: rgba(255,255,255,0.6); padding: 10px; border-radius: 5px; margin-bottom: 15px; }
-        #conclusion-panel { display: none; margin-top: 20px; padding: 15px; background: #e8f8f5; border: 2px solid #1abc9c; border-radius: 10px; text-align: center; font-size: 1.4em; color: #16a085; }
+        
+        /* Canvas 100% responsivo */
+        #canvas-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        
+        canvas { 
+            border: 1px solid #ccc; 
+            margin-top: 20px; 
+            border-radius: 10px; 
+            background: white; 
+            width: 100% !important; /* Se estira o encoje según la pantalla */
+            height: auto !important; /* Mantiene la proporción */
+        }
+        
+        .step-math { 
+            font-family: monospace; 
+            font-size: 1.1em; 
+            background: rgba(255,255,255,0.6); 
+            padding: 10px; 
+            border-radius: 5px; 
+            margin-bottom: 15px; 
+            word-wrap: break-word;
+        }
+        
+        #conclusion-panel { 
+            display: none; 
+            margin-top: 20px; 
+            padding: 15px; 
+            background: #e8f8f5; 
+            border: 2px solid #1abc9c; 
+            border-radius: 10px; 
+            text-align: center; 
+            font-size: 1.3em; 
+            color: #16a085; 
+            word-wrap: break-word;
+        }
     </style>
 </head>
 <body>
@@ -38,7 +177,7 @@
         <div class="control-group"><label>m</label><input type="range" id="slM" min="-10" max="10" step="0.5" value="-3"><span id="vM"></span></div>
     </div>
 
-    <div style="font-size: 1.6em; text-align: center; margin-bottom: 20px; color: #2980b9;">
+    <div style="font-size: 1.4em; text-align: center; margin-bottom: 20px; color: #2980b9;">
         <strong><span id="eqActual"></span></strong>
     </div>
 
@@ -47,13 +186,13 @@
             <strong>Caso 1: Interior Positivo (≥ 0)</strong>
             <div class="condicion-despeje" id="despejeC1"></div>
             <div id="step1" class="step-math"></div>
-            <button id="btn1" class="btn-validar btn-espera" onclick="verificar(1)">Verificar observando la recta 👇</button>
+            <button id="btn1" class="btn-validar btn-espera" onclick="verificar(1)">Verificar en recta 👇</button>
         </div>
         <div class="case neg">
             <strong>Caso 2: Interior Negativo (< 0)</strong>
             <div class="condicion-despeje" id="despejeC2"></div>
             <div id="step2" class="step-math"></div>
-            <button id="btn2" class="btn-validar btn-espera" onclick="verificar(2)">Verificar observando la recta 👇</button>
+            <button id="btn2" class="btn-validar btn-espera" onclick="verificar(2)">Verificar en recta 👇</button>
         </div>
     </div>
 
@@ -71,6 +210,7 @@ let esValida1 = false, esValida2 = false;
 let validado1 = false, validado2 = false;
 
 function setup() {
+    // Creamos el canvas con su tamaño original. CSS se encarga de achicarlo en celulares.
     let c = createCanvas(950, 220); 
     c.parent('canvas-container');
     centroX = width / 2;
@@ -80,7 +220,7 @@ function draw() {
     background(255);
     let a = parseFloat(document.getElementById('slA').value);
     let b = parseFloat(document.getElementById('slB').value);
-    if (b === 0) b = 0.001; // Prevención matemática
+    if (b === 0) b = 0.001; 
     let h = parseFloat(document.getElementById('slH').value);
     let k = parseFloat(document.getElementById('slK').value);
     let n = parseFloat(document.getElementById('slN').value);
@@ -106,11 +246,9 @@ function draw() {
     let hCritico = h / b;
     let bPos = b > 0;
     
-    // Al dividir por negativo, la inecuación se invierte
     let ineq1 = bPos ? "≥" : "≤";
     let ineq2 = bPos ? "<" : ">";
 
-    // Condiciones visuales
     let htmlC1 = `${bText}x ${hSign} ${hAbs} ≥ 0<br>`;
     htmlC1 += `${bText}x ≥ ${h}<br>`;
     htmlC1 += Math.abs(b) !== 1 ? `x ${ineq1} ${h}/${b} <br><span style="color:#27ae60"><strong>x ${ineq1} ${hCritico.toFixed(2)}</strong></span>` : `<span style="color:#27ae60"><strong>x ${ineq1} ${hCritico.toFixed(2)}</strong></span>`;
@@ -126,7 +264,7 @@ function draw() {
     let kStr = k === 0 ? "" : (k > 0 ? `+ ${k}` : `- ${kAbs}`);
     let rhs = `${e} ${mPart}`; 
 
-    // --- RESOLUCIÓN CASO 1 ---
+    // CASO 1
     let den1 = (a * b) + n - m;
     let num1 = e - k + (a * h);
     
@@ -145,13 +283,13 @@ function draw() {
     } else {
         resX1 = null;
         esValida1 = false;
-        pasos1 += `0x = ${num1}<br><strong>Sin solución lineal</strong>`;
+        pasos1 += `0x = ${num1}<br><strong>Sin solución</strong>`;
         document.getElementById('btn1').style.display = 'none';
         validado1 = true; 
     }
     document.getElementById('step1').innerHTML = pasos1;
 
-    // --- RESOLUCIÓN CASO 2 ---
+    // CASO 2
     let den2 = (-a * b) + n - m;
     let num2 = e - k - (a * h);
     
@@ -171,7 +309,7 @@ function draw() {
     } else {
         resX2 = null;
         esValida2 = false;
-        pasos2 += `0x = ${num2}<br><strong>Sin solución lineal</strong>`;
+        pasos2 += `0x = ${num2}<br><strong>Sin solución</strong>`;
         document.getElementById('btn2').style.display = 'none';
         validado2 = true; 
     }
@@ -246,19 +384,19 @@ function verificar(caso) {
     if(caso === 1 && resX1 !== null) {
         validado1 = true;
         if(esValida1) {
-            document.getElementById('btn1').innerText = `¡CORRECTO! Está en la zona verde (x ${ineq1} ${hCritico.toFixed(2)})`;
+            document.getElementById('btn1').innerText = "¡CORRECTO!";
             document.getElementById('btn1').className = "btn-validar btn-exito";
         } else {
-            document.getElementById('btn1').innerText = "DESCARTADA: El punto azul cayó fuera de la zona";
+            document.getElementById('btn1').innerText = "DESCARTADA";
             document.getElementById('btn1').className = "btn-validar btn-error";
         }
     } else if (caso === 2 && resX2 !== null) {
         validado2 = true;
         if(esValida2) {
-            document.getElementById('btn2').innerText = `¡CORRECTO! Está en la zona verde (x ${ineq2} ${hCritico.toFixed(2)})`;
+            document.getElementById('btn2').innerText = "¡CORRECTO!";
             document.getElementById('btn2').className = "btn-validar btn-exito";
         } else {
-            document.getElementById('btn2').innerText = "DESCARTADA: El punto rojo cayó fuera de la zona";
+            document.getElementById('btn2').innerText = "DESCARTADA";
             document.getElementById('btn2').className = "btn-validar btn-error";
         }
     }
@@ -278,7 +416,7 @@ function chequearSolucionFinal() {
         
         let textoFinal = "";
         if (conjuntoFormateado.length === 0) {
-            textoFinal = "S = ∅ (No hay solución real)";
+            textoFinal = "S = ∅";
         } else {
             textoFinal = "S = { " + conjuntoFormateado.join(" ; ") + " }";
         }
@@ -292,9 +430,9 @@ document.querySelectorAll('input').forEach(i => i.oninput = () => {
     validado1 = false; validado2 = false;
     document.getElementById('conclusion-panel').style.display = 'none';
     document.getElementById('btn1').className = "btn-validar btn-espera";
-    document.getElementById('btn1').innerText = "Verificar observando la recta 👇";
+    document.getElementById('btn1').innerText = "Verificar en recta 👇";
     document.getElementById('btn2').className = "btn-validar btn-espera";
-    document.getElementById('btn2').innerText = "Verificar observando la recta 👇";
+    document.getElementById('btn2').innerText = "Verificar en recta 👇";
 });
 </script>
 </body>
