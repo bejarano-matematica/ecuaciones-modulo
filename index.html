@@ -2,179 +2,65 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <!-- ETIQUETA CLAVE PARA APPS: Hace que sea responsivo y prohíbe el zoom -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Laboratorio de Módulo - App Móvil</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
     <style>
-        /* Ajuste global para evitar márgenes ocultos */
         * { box-sizing: border-box; }
+        body { display: flex; flex-direction: column; align-items: center; background-color: #f4f7f6; color: #2c3e50; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; touch-action: manipulation; overscroll-behavior-y: none; }
         
-        body { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            background-color: #f4f7f6; 
-            color: #2c3e50; 
-            font-family: 'Segoe UI', sans-serif; 
-            margin: 0; 
-            padding: 10px; /* Padding reducido para aprovechar el celu */
-            /* Evita el doble toque para zoom en celulares */
-            touch-action: manipulation; 
-            overscroll-behavior-y: none;
-        }
+        /* Estilos del Toggle Freemium */
+        .freemium-bar { display: flex; justify-content: center; gap: 10px; width: 100%; max-width: 950px; margin-bottom: 15px; }
+        .btn-mode { flex: 1; padding: 10px; border-radius: 8px; border: 2px solid transparent; font-weight: bold; cursor: pointer; transition: 0.3s; background: #e0e6ed; color: #7f8c8d; }
+        .btn-mode.active-free { background: #34495e; color: white; border-color: #2c3e50; }
+        .btn-mode.active-pro { background: #f1c40f; color: #8e44ad; border-color: #f39c12; box-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
         
-        .panel { 
-            background: white; 
-            padding: 15px; /* Padding más compacto */
-            border-radius: 15px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
-            width: 100%; 
-            max-width: 950px; 
-        }
+        .panel { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 100%; max-width: 950px; }
+        .formula-ref { background: #2c3e50; color: #ecf0f1; padding: 10px; border-radius: 8px; text-align: center; font-family: monospace; font-size: 1.1em; margin-bottom: 20px; word-wrap: break-word; }
         
-        .formula-ref { 
-            background: #2c3e50; 
-            color: #ecf0f1; 
-            padding: 10px; 
-            border-radius: 8px; 
-            text-align: center; 
-            font-family: monospace; 
-            font-size: 1.1em; 
-            margin-bottom: 20px; 
-            word-wrap: break-word;
-        }
+        .controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        .control-group { display: flex; flex-direction: column; align-items: center; font-size: 0.9em; font-weight: bold; flex: 1 1 calc(25% - 15px); min-width: 70px; transition: 0.3s; }
+        input[type="range"] { width: 100%; }
         
-        /* Controles adaptables a cualquier pantalla */
-        .controls { 
-            display: flex; 
-            flex-wrap: wrap; 
-            justify-content: center; 
-            gap: 15px; 
-            margin-bottom: 20px; 
-            padding-bottom: 20px; 
-            border-bottom: 1px solid #eee; 
-        }
+        /* Clase para bloquear parámetros visualmente */
+        .locked { opacity: 0.3; pointer-events: none; filter: grayscale(100%); }
         
-        .control-group { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            font-size: 0.9em; 
-            font-weight: bold; 
-            flex: 1 1 calc(25% - 15px); /* Ocupa 1/4 en tablets, y se achica en celus */
-            min-width: 70px; 
-        }
+        .math-box { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media (min-width: 768px) { .math-box { grid-template-columns: 1fr 1fr; } }
         
-        input[type="range"] {
-            width: 100%;
-        }
-        
-        /* Cajas de matemáticas responsivas */
-        .math-box { 
-            display: grid; 
-            grid-template-columns: 1fr; /* Por defecto (celular): apilados */
-            gap: 20px; 
-        }
-        
-        /* Si la pantalla es ancha (horizontal o tablet), se ponen lado a lado */
-        @media (min-width: 768px) {
-            .math-box { grid-template-columns: 1fr 1fr; }
-        }
-        
-        .case { 
-            padding: 15px; 
-            border-radius: 10px; 
-            border-top: 4px solid #3498db; 
-            background: #ebf5fb; 
-            font-size: 0.9em; 
-            line-height: 1.5; 
-            display: flex; 
-            flex-direction: column; 
-            min-height: auto;
-        }
+        .case { padding: 15px; border-radius: 10px; border-top: 4px solid #3498db; background: #ebf5fb; font-size: 0.9em; line-height: 1.5; display: flex; flex-direction: column; min-height: auto; }
         .case.neg { border-top-color: #e74c3c; background: #fdedec; }
-        
-        .condicion-despeje { 
-            background: rgba(255,255,255,0.7); 
-            padding: 10px; 
-            border-radius: 5px; 
-            margin: 10px 0; 
-            font-family: monospace; 
-            border: 1px dashed #aaa; 
-            text-align: center; 
-            font-size: 1.1em; 
-        }
-        
-        .btn-validar { 
-            cursor: pointer; 
-            padding: 12px 15px; /* Botones más altos para tocarlos fácil con el dedo */
-            border-radius: 8px; 
-            border: none; 
-            font-weight: bold; 
-            transition: 0.3s; 
-            margin-top: auto; 
-            width: 100%; 
-            font-size: 1em; 
-        }
-        
+        .condicion-despeje { background: rgba(255,255,255,0.7); padding: 10px; border-radius: 5px; margin: 10px 0; font-family: monospace; border: 1px dashed #aaa; text-align: center; font-size: 1.1em; }
+        .btn-validar { cursor: pointer; padding: 12px 15px; border-radius: 8px; border: none; font-weight: bold; transition: 0.3s; margin-top: auto; width: 100%; font-size: 1em; }
         .btn-espera { background: #f39c12; color: white; }
         .btn-error { background: #e74c3c; color: white; }
         .btn-exito { background: #27ae60; color: white; }
         
-        /* Canvas 100% responsivo */
-        #canvas-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-        }
+        #canvas-container { width: 100%; display: flex; justify-content: center; }
+        canvas { border: 1px solid #ccc; margin-top: 20px; border-radius: 10px; background: white; width: 100% !important; height: auto !important; }
         
-        canvas { 
-            border: 1px solid #ccc; 
-            margin-top: 20px; 
-            border-radius: 10px; 
-            background: white; 
-            width: 100% !important; /* Se estira o encoje según la pantalla */
-            height: auto !important; /* Mantiene la proporción */
-        }
-        
-        .step-math { 
-            font-family: monospace; 
-            font-size: 1.1em; 
-            background: rgba(255,255,255,0.6); 
-            padding: 10px; 
-            border-radius: 5px; 
-            margin-bottom: 15px; 
-            word-wrap: break-word;
-        }
-        
-        #conclusion-panel { 
-            display: none; 
-            margin-top: 20px; 
-            padding: 15px; 
-            background: #e8f8f5; 
-            border: 2px solid #1abc9c; 
-            border-radius: 10px; 
-            text-align: center; 
-            font-size: 1.3em; 
-            color: #16a085; 
-            word-wrap: break-word;
-        }
+        .step-math { font-family: monospace; font-size: 1.1em; background: rgba(255,255,255,0.6); padding: 10px; border-radius: 5px; margin-bottom: 15px; word-wrap: break-word; }
+        #conclusion-panel { display: none; margin-top: 20px; padding: 15px; background: #e8f8f5; border: 2px solid #1abc9c; border-radius: 10px; text-align: center; font-size: 1.3em; color: #16a085; word-wrap: break-word; }
     </style>
 </head>
 <body>
 
+<div class="freemium-bar">
+    <button id="btnBásico" class="btn-mode active-free" onclick="setModo('basico')">Modo Básico</button>
+    <button id="btnPro" class="btn-mode" onclick="intentarDesbloquearPro()">👑 Desbloquear PRO</button>
+</div>
+
 <div class="panel">
-    <div class="formula-ref">Ecuación: a |bx - h| + k + nx = e + mx</div>
+    <div class="formula-ref" id="formulaRef">Ecuación: a |bx - h| = e</div>
     
     <div class="controls">
         <div class="control-group"><label>a</label><input type="range" id="slA" min="-10" max="10" step="0.5" value="2"><span id="vA"></span></div>
         <div class="control-group"><label>b</label><input type="range" id="slB" min="-10" max="10" step="0.5" value="3"><span id="vB"></span></div>
         <div class="control-group"><label>h</label><input type="range" id="slH" min="-10" max="10" step="0.5" value="5"><span id="vH"></span></div>
-        <div class="control-group"><label>k</label><input type="range" id="slK" min="-10" max="10" step="0.5" value="4"><span id="vK"></span></div>
-        <div class="control-group"><label>n</label><input type="range" id="slN" min="-10" max="10" step="0.5" value="5"><span id="vN"></span></div>
+        <div class="control-group locked" id="grpK"><label>k 👑</label><input type="range" id="slK" min="-10" max="10" step="0.5" value="0"><span id="vK"></span></div>
+        <div class="control-group locked" id="grpN"><label>n 👑</label><input type="range" id="slN" min="-10" max="10" step="0.5" value="0"><span id="vN"></span></div>
         <div class="control-group"><label>e</label><input type="range" id="slE" min="-10" max="10" step="0.5" value="7"><span id="vE"></span></div>
-        <div class="control-group"><label>m</label><input type="range" id="slM" min="-10" max="10" step="0.5" value="-3"><span id="vM"></span></div>
+        <div class="control-group locked" id="grpM"><label>m 👑</label><input type="range" id="slM" min="-10" max="10" step="0.5" value="0"><span id="vM"></span></div>
     </div>
 
     <div style="font-size: 1.4em; text-align: center; margin-bottom: 20px; color: #2980b9;">
@@ -208,12 +94,61 @@ let escala = 30, centroX;
 let resX1 = null, resX2 = null;
 let esValida1 = false, esValida2 = false;
 let validado1 = false, validado2 = false;
+let modoProActivo = false;
+
+// Lógica Freemium
+function setModo(modo) {
+    let slK = document.getElementById('slK');
+    let slN = document.getElementById('slN');
+    let slM = document.getElementById('slM');
+    
+    if (modo === 'basico') {
+        modoProActivo = false;
+        document.getElementById('btnBásico').className = "btn-mode active-free";
+        document.getElementById('btnPro').className = "btn-mode";
+        document.getElementById('btnPro').innerText = "👑 Desbloquear PRO";
+        document.getElementById('formulaRef').innerText = "Ecuación: a |bx - h| = e";
+        
+        // Forzar a 0 y bloquear
+        slK.value = 0; slN.value = 0; slM.value = 0;
+        slK.disabled = true; slN.disabled = true; slM.disabled = true;
+        document.getElementById('grpK').classList.add('locked');
+        document.getElementById('grpN').classList.add('locked');
+        document.getElementById('grpM').classList.add('locked');
+    } else if (modo === 'pro') {
+        modoProActivo = true;
+        document.getElementById('btnBásico').className = "btn-mode";
+        document.getElementById('btnPro').className = "btn-mode active-pro";
+        document.getElementById('btnPro').innerText = "👑 MODO PRO ACTIVO";
+        document.getElementById('formulaRef').innerText = "Ecuación: a |bx - h| + k + nx = e + mx";
+        
+        // Desbloquear
+        slK.disabled = false; slN.disabled = false; slM.disabled = false;
+        document.getElementById('grpK').classList.remove('locked');
+        document.getElementById('grpN').classList.remove('locked');
+        document.getElementById('grpM').classList.remove('locked');
+    }
+    
+    resetBotones();
+    if(typeof draw === 'function') draw(); // Forzar redibujo
+}
+
+function intentarDesbloquearPro() {
+    if(modoProActivo) return; // Si ya está activo no hace nada
+    let pass = prompt("Ingresá el código de acceso PRO:");
+    if (pass === "PRO2026") { // ACÁ CAMBIÁS LA CONTRASEÑA
+        alert("¡Acceso concedido! Se desbloquearon los parámetros K, N y M.");
+        setModo('pro');
+    } else if (pass !== null) {
+        alert("Código incorrecto. Conseguí tu código con el Profesor.");
+    }
+}
 
 function setup() {
-    // Creamos el canvas con su tamaño original. CSS se encarga de achicarlo en celulares.
     let c = createCanvas(950, 220); 
     c.parent('canvas-container');
     centroX = width / 2;
+    setModo('basico'); // Iniciar siempre en modo básico
 }
 
 function draw() {
@@ -241,7 +176,10 @@ function draw() {
     let aText = a === 1 ? "" : (a === -1 ? "-" : a);
     let bText = b === 1 ? "" : (b === -1 ? "-" : b);
 
-    document.getElementById('eqActual').innerText = `${aText}|${bText}x ${hSign} ${hAbs}| ${k !== 0 ? kSign+' '+kAbs : ''} ${nPart} = ${e} ${mPart}`;
+    // Si es modo básico, no mostrar el "+ 0" en la pantalla
+    let eqK = (!modoProActivo || k === 0) ? "" : ` ${kSign} ${kAbs}`;
+    
+    document.getElementById('eqActual').innerText = `${aText}|${bText}x ${hSign} ${hAbs}|${eqK} ${nPart} = ${e} ${mPart}`;
 
     let hCritico = h / b;
     let bPos = b > 0;
@@ -261,7 +199,7 @@ function draw() {
 
     let bStr = bText;
     let interiorMod = `${bStr}x ${hSign} ${hAbs}`;
-    let kStr = k === 0 ? "" : (k > 0 ? `+ ${k}` : `- ${kAbs}`);
+    let kStr = (!modoProActivo || k === 0) ? "" : (k > 0 ? `+ ${k}` : `- ${kAbs}`);
     let rhs = `${e} ${mPart}`; 
 
     // CASO 1
@@ -407,7 +345,6 @@ function verificar(caso) {
 function chequearSolucionFinal() {
     if (validado1 && validado2) {
         let conjuntoNums = [];
-        
         if (esValida1 && resX1 !== null) conjuntoNums.push(resX1);
         if (esValida2 && resX2 !== null) conjuntoNums.push(resX2);
         
@@ -426,14 +363,16 @@ function chequearSolucionFinal() {
     }
 }
 
-document.querySelectorAll('input').forEach(i => i.oninput = () => {
+function resetBotones() {
     validado1 = false; validado2 = false;
     document.getElementById('conclusion-panel').style.display = 'none';
     document.getElementById('btn1').className = "btn-validar btn-espera";
     document.getElementById('btn1').innerText = "Verificar en recta 👇";
     document.getElementById('btn2').className = "btn-validar btn-espera";
     document.getElementById('btn2').innerText = "Verificar en recta 👇";
-});
+}
+
+document.querySelectorAll('input').forEach(i => i.oninput = resetBotones);
 </script>
 </body>
 </html>
