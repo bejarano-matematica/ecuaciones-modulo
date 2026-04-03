@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Laboratorio de Módulo - App Móvil</title>
+    <title>Ecuaciones con Módulo - App Móvil</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
     <style>
         * { box-sizing: border-box; }
@@ -69,16 +69,16 @@
 
     <div class="math-box">
         <div class="case">
-            <strong>Caso 1: Interior Positivo (≥ 0)</strong>
+            <strong>Caso 1: Parte Positiva o Cero (≥ 0)</strong>
             <div class="condicion-despeje" id="despejeC1"></div>
             <div id="step1" class="step-math"></div>
-            <button id="btn1" class="btn-validar btn-espera" onclick="verificar(1)">Verificar en recta 👇</button>
+            <button id="btn1" class="btn-validar btn-espera" onclick="verificar(1)">Verificar en la recta numérica 👇</button>
         </div>
         <div class="case neg">
-            <strong>Caso 2: Interior Negativo (< 0)</strong>
+            <strong>Caso 2: Parte Negativo (< 0)</strong>
             <div class="condicion-despeje" id="despejeC2"></div>
             <div id="step2" class="step-math"></div>
-            <button id="btn2" class="btn-validar btn-espera" onclick="verificar(2)">Verificar en recta 👇</button>
+            <button id="btn2" class="btn-validar btn-espera" onclick="verificar(2)">Verificar en la recta numérica 👇</button>
         </div>
     </div>
 
@@ -136,7 +136,7 @@ function setModo(modo) {
 function intentarDesbloquearPro() {
     if(modoProActivo) return; // Si ya está activo no hace nada
     let pass = prompt("Ingresá el código de acceso PRO:");
-    if (pass === "PRO2026") { // ACÁ CAMBIÁS LA CONTRASEÑA
+    if (pass === "IamBatman2026") { // Contraseña
         alert("¡Acceso concedido! Se desbloquearon los parámetros K, N y M.");
         setModo('pro');
     } else if (pass !== null) {
