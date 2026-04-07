@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <!-- Google Analytics con tu ID -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-BTCERXHYET"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -10,15 +11,15 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ecuaciones con Módulo - Profe Marcelo</title>
+    <title>Módulo Profe Marcelo</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
 </head>
 <body>
 
 <div class="nav-tabs">
-    <button class="tab-link active" onclick="openTab(event, 'pantallaCalculos')">🔢 Cálculos Paso a Paso</button>
-    <button class="tab-link" onclick="openTab(event, 'pantallaGraficos')">📈 Recta Numérica</button>
+    <button class="tab-link active" onclick="openTab(event, 'pantallaCalculos')">🔢 Cálculos</button>
+    <button class="tab-link" onclick="openTab(event, 'pantallaGraficos')">📈 Gráfico</button>
 </div>
 
 <div class="freemium-bar">
@@ -27,11 +28,11 @@
 </div>
 
 <div id="area-ingreso-pro" style="display: none; margin-bottom: 15px; padding: 15px; background: #fff3cd; border-radius: 12px; border: 2px dashed #f1c40f; width: 100%; max-width: 950px; text-align: center;">
-    <p style="margin-bottom: 10px; font-weight: bold; color: #333;">Ingresá el código secreto:</p>
-    <input type="text" id="input-codigo-pro" style="margin-bottom: 10px; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px; width: 80%; max-width: 300px;" placeholder="Escribe aquí...">
+    <p style="margin-bottom: 10px; font-weight: bold; color: #333;">Código de 5to A y B:</p>
+    <input type="text" id="input-codigo-pro" style="margin-bottom: 10px; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px; width: 80%;" placeholder="Ingresá 5toAB...">
     <br>
-    <button style="padding: 10px 20px; font-size: 16px; background: #f39c12; color: white; border: none; border-radius: 5px; cursor: pointer;" onclick="verificarCodigoPro()">Validar</button>
-    <button style="padding: 10px 20px; font-size: 16px; background: #ccc; color: #333; border: none; border-radius: 5px; cursor: pointer; margin-left: 5px;" onclick="cancelarPro()">Cancelar</button>
+    <button style="padding: 10px; background: #f39c12; color: white; border: none; border-radius: 5px;" onclick="verificarCodigoPro()">Validar</button>
+    <button style="padding: 10px; background: #ccc; border: none; border-radius: 5px; margin-left: 5px;" onclick="cancelarPro()">Cerrar</button>
     <p id="mensaje-error-pro" style="display: none; color: #d32f2f; font-weight: bold; margin-top: 10px;">❌ Código incorrecto</p>
 </div>
 
@@ -48,38 +49,36 @@
         <div class="control-group locked" id="grpM"><label>m 👑</label><input type="range" id="slM" min="-10" max="10" step="0.5" value="0"><span id="vM"></span></div>
     </div>
 
-    <div style="font-size: 1.5em; text-align: center; margin: 15px 0; color: #2980b9;">
+    <div style="font-size: 1.4em; text-align: center; margin: 15px 0; color: #2980b9;">
         <strong><span id="eqActual"></span></strong>
     </div>
 
     <div id="pantallaCalculos" class="tab-content active">
         <div class="math-box">
             <div class="case">
-                <strong>Caso 1: Parte Positiva (≥ 0)</strong>
+                <strong>Caso 1 (+)</strong>
                 <div class="condicion-despeje" id="despejeC1"></div>
                 <div id="step1" class="step-math"></div>
-                <button id="btn1" class="btn-validar btn-espera" onclick="verificar(1)">Validar Caso 1</button>
+                <button id="btn1" class="btn-validar btn-espera" onclick="verificar(1)">Validar 1</button>
             </div>
             <div class="case neg">
-                <strong>Caso 2: Parte Negativa (< 0)</strong>
+                <strong>Caso 2 (-)</strong>
                 <div class="condicion-despeje" id="despejeC2"></div>
                 <div id="step2" class="step-math"></div>
-                <button id="btn2" class="btn-validar btn-espera" onclick="verificar(2)">Validar Caso 2</button>
+                <button id="btn2" class="btn-validar btn-espera" onclick="verificar(2)">Validar 2</button>
             </div>
         </div>
         <div id="conclusion-panel">
-            <strong>Solución Final:</strong> <span id="solucion-final-text"></span>
+            <strong>Solución:</strong> <span id="solucion-final-text"></span>
         </div>
     </div>
 
     <div id="pantallaGraficos" class="tab-content">
-        <p style="text-align:center; font-size: 0.9em; color: #7f8c8d; margin-top:0;">Recta Numérica</p>
         <div id="canvas-container"></div>
     </div>
 
-    <!-- BOTÓN WHATSAPP -->
-    <button onclick="compartirWhatsApp()" style="width: 100%; margin-top: 20px; padding: 15px; background: #25D366; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1.1em; display: flex; align-items: center; justify-content: center; gap: 10px;">
-        <span>Compartir Ejercicio</span> 📱
+    <button onclick="compartirWhatsApp()" style="width: 100%; margin-top: 20px; padding: 15px; background: #25D366; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1.1em;">
+        Compartir por WhatsApp 📱
     </button>
 </div>
 
