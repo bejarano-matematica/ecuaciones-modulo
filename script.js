@@ -15,6 +15,7 @@ window.onload = function() {
             setModo('pro');
         }
     } catch (e) {}
+    setTimeout(draw, 500);
 };
 
 function openTab(evt, tabName) {
@@ -105,43 +106,42 @@ function draw() {
     let mP = m === 0 ? "" : (m > 0 ? ` + ${f(m)}x` : ` - ${f(Math.abs(m))}x`);
     let eqK = (!modoProActivo || k === 0) ? "" : ` ${k >= 0 ? '+' : '-'} ${f(Math.abs(k))}`;
     
-    document.getElementById('eqActual').innerText = `${a === 1 ? '' : (a === -1 ? '-' : f(a))}|${bT}x ${hS} ${f(Math.abs(h))}|${eqK}${nP} = ${f(e)}${mP}`;
+    let eqTxt = `${a === 1 ? '' : (a === -1 ? '-' : f(a))}|${bT}x ${hS} ${f(Math.abs(h))}|${eqK}${nP} = ${f(e)}${mP}`;
+    document.getElementById('eqActual').innerText = eqTxt;
 
     if (b === 0) return;
-
     let hC = h / b;
-    let bPos = b > 0;
 
-    // CONDICIONES PEDAGÓGICAS
-    document.getElementById('despejeC1').innerHTML = `${f(b)}x ${hS} ${f(Math.abs(h))} ≥ 0 <br> x ${bPos ? '≥' : '≤'} ${f(hC)}`;
-    document.getElementById('despejeC2').innerHTML = `${f(b)}x ${hS} ${f(Math.abs(h))} < 0 <br> x ${bPos ? '<' : '>'} ${f(hC)}`;
+    // CONDICIONES
+    document.getElementById('despejeC1').innerHTML = `${f(b)}x ${hS} ${f(Math.abs(h))} ≥ 0 <br> x ${b > 0 ? '≥' : '≤'} ${f(hC)}`;
+    document.getElementById('despejeC2').innerHTML = `${f(b)}x ${hS} ${f(Math.abs(h))} < 0 <br> x ${b > 0 ? '<' : '>'} ${f(hC)}`;
 
-    // CASO 1: PASO A PASO
+    // CASO 1: DISTRIBUTIVA Y DESPEJE
     let d1 = (a * b) + n - m;
     let v1 = e - k + (a * h);
     if (d1 !== 0) {
         resX1 = v1 / d1;
-        esValida1 = bPos ? (resX1 >= hC - 0.001) : (resX1 <= hC + 0.001);
+        esValida1 = (b > 0) ? (resX1 >= hC - 0.001) : (resX1 <= hC + 0.001);
         let t1 = `${f(a)}(${f(b)}x ${hS} ${f(Math.abs(h))})${eqK}${nP} = ${f(e)}${mP}<br>`;
         t1 += `${f(a*b)}x ${a*(-h)>=0?'+':'-'} ${f(Math.abs(a*h))}${eqK}${nP} = ${f(e)}${mP}<br>`;
-        t1 += `<strong>${f(d1)}x = ${f(v1)}</strong><br><strong>x₁ = ${f(resX1)}</strong>`;
+        t1 += `<strong>${f(d1)}x = ${f(v1)} | x₁ = ${f(resX1)}</strong>`;
         document.getElementById('step1').innerHTML = t1;
     }
 
-    // CASO 2: PASO A PASO
+    // CASO 2: DISTRIBUTIVA Y DESPEJE
     let d2 = (a * -b) + n - m;
     let v2 = e - k - (a * h);
     if (d2 !== 0) {
         resX2 = v2 / d2;
-        esValida2 = bPos ? (resX2 < hC + 0.001) : (resX2 > hC - 0.001);
+        esValida2 = (b > 0) ? (resX2 < hC + 0.001) : (resX2 > hC - 0.001);
         let t2 = `${f(a)}[ -(${f(b)}x ${hS} ${f(Math.abs(h))}) ]${eqK}${nP} = ${f(e)}${mP}<br>`;
         t2 += `${f(a*-b)}x ${a*h>=0?'+':'-'} ${f(Math.abs(a*h))}${eqK}${nP} = ${f(e)}${mP}<br>`;
-        t2 += `<strong>${f(d2)}x = ${f(v2)}</strong><br><strong>x₂ = ${f(resX2)}</strong>`;
+        t2 += `<strong>${f(d2)}x = ${f(v2)} | x₂ = ${f(resX2)}</strong>`;
         document.getElementById('step2').innerHTML = t2;
     }
 
-    dibujarRecta(1, 70, hC, resX1, `Validez Caso 1`, "#3498db", "x₁", bPos);
-    dibujarRecta(2, 160, hC, resX2, `Validez Caso 2`, "#e74c3c", "x₂", bPos);
+    dibujarRecta(1, 70, hC, resX1, `Validez Caso 1`, "#3498db", "x₁", b > 0);
+    dibujarRecta(2, 160, hC, resX2, `Validez Caso 2`, "#e74c3c", "x₂", b > 0);
     chequearSolucionFinal();
 }
 
@@ -166,11 +166,10 @@ function dibujarRecta(caso, y, hC, xV, tit, col, lab, bP) {
 }
 
 function verificar(caso) {
-    let btn = document.getElementById('btn' + caso);
     let valida = (caso === 1) ? esValida1 : esValida2;
     if (caso === 1) validado1 = true; else validado2 = true;
-    btn.className = "btn-validar " + (valida ? "btn-exito" : "btn-error");
-    btn.innerText = valida ? "CORRECTO" : "FUERA DE RANGO";
+    document.getElementById('btn' + caso).className = "btn-validar " + (valida ? "btn-exito" : "btn-error");
+    document.getElementById('btn' + caso).innerText = valida ? "CORRECTO" : "FUERA";
     chequearSolucionFinal();
 }
 
@@ -187,26 +186,27 @@ function chequearSolucionFinal() {
 function resetBotones() {
     validado1 = false; validado2 = false;
     document.getElementById('conclusion-panel').style.display = "none";
-    document.getElementById('btn1').className = "btn-validar btn-espera"; document.getElementById('btn1').innerText = "Validar Caso 1";
-    document.getElementById('btn2').className = "btn-validar btn-espera"; document.getElementById('btn2').innerText = "Validar Caso 2";
+    document.getElementById('btn1').className = "btn-validar btn-espera"; document.getElementById('btn1').innerText = "Validar 1";
+    document.getElementById('btn2').className = "btn-validar btn-espera"; document.getElementById('btn2').innerText = "Validar 2";
 }
 
+// FIX ESPECIAL PARA MIT APP INVENTOR
 function compartirWhatsApp() {
     let eq = document.getElementById('eqActual').innerText;
     let c1 = document.getElementById('despejeC1').innerText.replace(/\n/g, " ");
     let c2 = document.getElementById('despejeC2').innerText.replace(/\n/g, " ");
-    let s1 = document.getElementById('step1').innerText.replace(/\n/g, " | ");
-    let s2 = document.getElementById('step2').innerText.replace(/\n/g, " | ");
-    let sol = document.getElementById('solucion-final-text').innerText || "No validada";
+    let sol = document.getElementById('solucion-final-text').innerText || "---";
 
-    let msj = `*Ecuación con Módulo* 📐%0A%0A`;
-    msj += `*Ecuación:* ${eq}%0A%0A`;
-    msj += `🔵 *CASO 1* (Positivo)%0ACondición: ${c1}%0APasos: ${s1}%0A%0A`;
-    msj += `🔴 *CASO 2* (Negativo)%0ACondición: ${c2}%0APasos: ${s2}%0A%0A`;
-    msj += `🏆 *Solución Final:* ${sol}`;
-
-    window.open(`https://wa.me/?text=${msj}`, '_blank');
+    let texto = `*Ecuación:* ${eq}%0A*Caso 1:* ${c1}%0A*Caso 2:* ${c2}%0A*Solución:* ${sol}`;
+    
+    // Intentamos primero el esquema nativo de Android, si falla usamos wa.me
+    let urlWhatsApp = "whatsapp://send?text=" + texto;
+    
+    try {
+        window.location.href = urlWhatsApp;
+    } catch (e) {
+        window.open("https://api.whatsapp.com/send?text=" + texto, '_blank');
+    }
 }
 
 document.querySelectorAll('input').forEach(i => i.oninput = () => { resetBotones(); draw(); });
-setTimeout(draw, 500);
