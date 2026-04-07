@@ -4,9 +4,10 @@ let esValida1 = false, esValida2 = false;
 let validado1 = false, validado2 = false;
 let modoProActivo = false;
 
-// Función auxiliar para limpiar números
+// Función para mostrar números bonitos (limpia .0)
 function f(n) {
-    return Number(Number(n).toFixed(2));
+    let num = Number(n);
+    return Number.isInteger(num) ? num.toString() : num.toFixed(2);
 }
 
 window.onload = function() {
@@ -20,21 +21,20 @@ window.onload = function() {
 function openTab(evt, tabName) {
     let i, tabcontent, tablinks;
     tabcontent = document.getElementsByClassName("tab-content");
-    for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
+    for (i = 0; i < tabcontent.length; i++) tabcontent[i].style.display = "none";
     tablinks = document.getElementsByClassName("tab-link");
-    for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
+    for (i = 0; i < tablinks.length; i++) tablinks[i].className = tablinks[i].className.replace(" active", "");
     document.getElementById(tabName).style.display = "block";
     evt.currentTarget.className += " active";
 }
 
 function setModo(modo) {
-    let slK = document.getElementById('slK'), slN = document.getElementById('slN'), slM = document.getElementById('slM');
     if (modo === 'basico') {
         modoProActivo = false;
         document.getElementById('btnBásico').className = "btn-mode active-free";
         document.getElementById('btnPro').className = "btn-mode";
         document.getElementById('formulaRef').innerText = "Ecuación: a |bx - h| = e";
-        slK.value = 0; slN.value = 0; slM.value = 0;
+        document.getElementById('slK').value = 0; document.getElementById('slN').value = 0; document.getElementById('slM').value = 0;
         document.getElementById('grpK').classList.add('locked');
         document.getElementById('grpN').classList.add('locked');
         document.getElementById('grpM').classList.add('locked');
@@ -59,14 +59,10 @@ function intentarDesbloquearPro() {
 function cancelarPro() { document.getElementById('area-ingreso-pro').style.display = 'none'; }
 
 function verificarCodigoPro() {
-    let codigo = document.getElementById('input-codigo-pro').value;
-    if (btoa(codigo.trim()) === "NXRvQUI=") {
+    if (btoa(document.getElementById('input-codigo-pro').value.trim()) === "NXRvQUI=") {
         try { localStorage.setItem('moduloProBejarano', 'activado'); } catch(e) {}
-        document.getElementById('mensaje-exito-pro').style.display = 'block';
-        setTimeout(() => {
-            document.getElementById('area-ingreso-pro').style.display = 'none';
-            setModo('pro');
-        }, 1200);
+        document.getElementById('area-ingreso-pro').style.display = 'none';
+        setModo('pro');
     } else {
         document.getElementById('mensaje-error-pro').style.display = 'block';
     }
@@ -74,7 +70,7 @@ function verificarCodigoPro() {
 
 function setup() {
     let cont = document.getElementById('canvas-container');
-    let c = createCanvas(cont.offsetWidth || windowWidth * 0.9, 220); 
+    let c = createCanvas(cont.offsetWidth || 350, 220); 
     c.parent('canvas-container');
     actualizarMedidasCanvas();
 }
@@ -110,34 +106,44 @@ function draw() {
     let mP = m === 0 ? "" : (m > 0 ? ` + ${f(m)}x` : ` - ${f(Math.abs(m))}x`);
     let eqK = (!modoProActivo || k === 0) ? "" : ` ${k >= 0 ? '+' : '-'} ${f(Math.abs(k))}`;
     
-    document.getElementById('eqActual').innerText = `${a === 1 ? '' : (a === -1 ? '-' : f(a))}|${bT}x ${hS} ${f(Math.abs(h))}|${eqK}${nP} = ${f(e)}${mP}`;
+    let eqTxt = `${a === 1 ? '' : (a === -1 ? '-' : f(a))}|${bT}x ${hS} ${f(Math.abs(h))}|${eqK}${nP} = ${f(e)}${mP}`;
+    document.getElementById('eqActual').innerText = eqTxt;
 
     if (b === 0) return;
 
     let hC = h / b;
-    document.getElementById('despejeC1').innerHTML = `Condición: x ${b > 0 ? '≥' : '≤'} ${f(hC)}`;
-    document.getElementById('despejeC2').innerHTML = `Condición: x ${b > 0 ? '<' : '>'} ${f(hC)}`;
+    let bPos = b > 0;
 
-    // Caso 1
+    // CONDICIONES
+    document.getElementById('despejeC1').innerHTML = `${f(b)}x ${hS} ${f(Math.abs(h))} ≥ 0 <br> x ${bPos ? '≥' : '≤'} ${f(hC)}`;
+    document.getElementById('despejeC2').innerHTML = `${f(b)}x ${hS} ${f(Math.abs(h))} < 0 <br> x ${bPos ? '<' : '>'} ${f(hC)}`;
+
+    // CASO 1
     let d1 = (a * b) + n - m;
     let v1 = e - k + (a * h);
     if (d1 !== 0) {
         resX1 = v1 / d1;
-        esValida1 = (b > 0) ? (resX1 >= hC - 0.001) : (resX1 <= hC + 0.001);
-        document.getElementById('step1').innerHTML = `${f(d1)}x = ${f(v1)}<br><strong>x₁ = ${f(resX1)}</strong>`;
+        esValida1 = bPos ? (resX1 >= hC - 0.001) : (resX1 <= hC + 0.001);
+        let t1 = `${f(a)}(${f(b)}x ${hS} ${f(Math.abs(h))})${eqK}${nP} = ${f(e)}${mP}<br>`;
+        t1 += `${f(a*b)}x ${a*(-h)>=0?'+':'-'} ${f(Math.abs(a*h))}${eqK}${nP} = ${f(e)}${mP}<br>`;
+        t1 += `<strong>${f(d1)}x = ${f(v1)}</strong><br><strong>x₁ = ${f(resX1)}</strong>`;
+        document.getElementById('step1').innerHTML = t1;
     }
 
-    // Caso 2
-    let d2 = (-a * b) + n - m;
+    // CASO 2
+    let d2 = (a * -b) + n - m;
     let v2 = e - k - (a * h);
     if (d2 !== 0) {
         resX2 = v2 / d2;
-        esValida2 = (b > 0) ? (resX2 < hC + 0.001) : (resX2 > hC - 0.001);
-        document.getElementById('step2').innerHTML = `${f(d2)}x = ${f(v2)}<br><strong>x₂ = ${f(resX2)}</strong>`;
+        esValida2 = bPos ? (resX2 < hC + 0.001) : (resX2 > hC - 0.001);
+        let t2 = `${f(a)}[ -(${f(b)}x ${hS} ${f(Math.abs(h))}) ]${eqK}${nP} = ${f(e)}${mP}<br>`;
+        t2 += `${f(a*-b)}x ${a*h>=0?'+':'-'} ${f(Math.abs(a*h))}${eqK}${nP} = ${f(e)}${mP}<br>`;
+        t2 += `<strong>${f(d2)}x = ${f(v2)}</strong><br><strong>x₂ = ${f(resX2)}</strong>`;
+        document.getElementById('step2').innerHTML = t2;
     }
 
-    dibujarRecta(1, 70, hC, resX1, `Validez Caso 1`, "#3498db", "x₁", b > 0);
-    dibujarRecta(2, 160, hC, resX2, `Validez Caso 2`, "#e74c3c", "x₂", b > 0);
+    dibujarRecta(1, 70, hC, resX1, `Validez Caso 1`, "#3498db", "x₁", bPos);
+    dibujarRecta(2, 160, hC, resX2, `Validez Caso 2`, "#e74c3c", "x₂", bPos);
     chequearSolucionFinal();
 }
 
@@ -162,15 +168,12 @@ function dibujarRecta(caso, y, hC, xV, tit, col, lab, bP) {
 }
 
 function verificar(caso) {
-    if(caso === 1) {
-        validado1 = true;
-        document.getElementById('btn1').className = "btn-validar " + (esValida1 ? "btn-exito" : "btn-error");
-        document.getElementById('btn1').innerText = esValida1 ? "CORRECTO" : "FUERA DE RANGO";
-    } else {
-        validado2 = true;
-        document.getElementById('btn2').className = "btn-validar " + (esValida2 ? "btn-exito" : "btn-error");
-        document.getElementById('btn2').innerText = esValida2 ? "CORRECTO" : "FUERA DE RANGO";
-    }
+    let btn = document.getElementById('btn' + caso);
+    let valida = (caso === 1) ? esValida1 : esValida2;
+    if (caso === 1) validado1 = true; else validado2 = true;
+    btn.className = "btn-validar " + (valida ? "btn-exito" : "btn-error");
+    btn.innerText = valida ? "CORRECTO" : "FUERA DE RANGO";
+    chequearSolucionFinal();
 }
 
 function chequearSolucionFinal() {
@@ -178,7 +181,6 @@ function chequearSolucionFinal() {
         let sol = [];
         if(esValida1) sol.push(f(resX1));
         if(esValida2) sol.push(f(resX2));
-        sol.sort((a,b)=>a-b);
         document.getElementById('solucion-final-text').innerText = sol.length ? `{ ${sol.join(" ; ")} }` : "∅";
         document.getElementById('conclusion-panel').style.display = 'block';
     }
@@ -191,5 +193,22 @@ function resetBotones() {
     document.getElementById('btn2').className = "btn-validar btn-espera"; document.getElementById('btn2').innerText = "Validar Caso 2";
 }
 
+function compartirWhatsApp() {
+    let eq = document.getElementById('eqActual').innerText;
+    let c1 = document.getElementById('despejeC1').innerText.replace(/\n/g, " ");
+    let c2 = document.getElementById('despejeC2').innerText.replace(/\n/g, " ");
+    let s1 = document.getElementById('step1').innerText.replace(/\n/g, " | ");
+    let s2 = document.getElementById('step2').innerText.replace(/\n/g, " | ");
+    let sol = document.getElementById('solucion-final-text').innerText || "No validada";
+
+    let msj = `*Ecuación con Módulo* 📐%0A%0A`;
+    msj += `*Ecuación:* ${eq}%0A%0A`;
+    msj += `🔵 *CASO 1* (Positivo)%0ACondición: ${c1}%0APasos: ${s1}%0A${esValida1 ? '✅ Válida' : '❌ No válida'}%0A%0A`;
+    msj += `🔴 *CASO 2* (Negativo)%0ACondición: ${c2}%0APasos: ${s2}%0A${esValida2 ? '✅ Válida' : '❌ No válida'}%0A%0A`;
+    msj += `🏆 *Solución Final:* ${sol}`;
+
+    window.open(`https://wa.me/?text=${msj}`, '_blank');
+}
+
 document.querySelectorAll('input').forEach(i => i.oninput = () => { resetBotones(); draw(); });
-setTimeout(draw, 300);
+setTimeout(draw, 500);
