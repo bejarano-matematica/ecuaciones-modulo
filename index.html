@@ -1,7 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- PEGA AQUÍ TU CÓDIGO DE GOOGLE ANALYTICS -->
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JS85LEWH99"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JS85LEWH99');
+    </script>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -20,6 +27,18 @@
     <button id="btnBásico" class="btn-mode active-free" onclick="setModo('basico')">Básico</button>
     <button id="btnPro" class="btn-mode" onclick="intentarDesbloquearPro()">👑 PRO</button>
 </div>
+
+<!-- NUEVA ZONA PRO (Sin ventanas emergentes que traben el celular) -->
+<div id="area-ingreso-pro" style="display: none; margin-bottom: 15px; padding: 15px; background: #fff3cd; border-radius: 12px; border: 2px dashed #f1c40f; width: 100%; max-width: 950px; text-align: center;">
+    <p style="margin-bottom: 10px; font-weight: bold; color: #333;">Ingresá el código secreto:</p>
+    <input type="text" id="input-codigo-pro" style="margin-bottom: 10px; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px; width: 80%; max-width: 300px;" placeholder="Escribe aquí...">
+    <br>
+    <button style="padding: 10px 20px; font-size: 16px; background: #f39c12; color: white; border: none; border-radius: 5px; cursor: pointer;" onclick="verificarCodigoPro()">Validar</button>
+    <button style="padding: 10px 20px; font-size: 16px; background: #ccc; color: #333; border: none; border-radius: 5px; cursor: pointer; margin-left: 5px;" onclick="cancelarPro()">Cancelar</button>
+    <p id="mensaje-error-pro" style="display: none; color: #d32f2f; font-weight: bold; margin-top: 10px;">❌ Código incorrecto</p>
+    <p id="mensaje-exito-pro" style="display: none; color: #2e7d32; font-weight: bold; margin-top: 10px;">✅ ¡Modo PRO activado!</p>
+</div>
+<!-- FIN ZONA PRO -->
 
 <div class="panel">
     <div class="formula-ref" id="formulaRef">Ecuación: a |bx - h| = e</div>
