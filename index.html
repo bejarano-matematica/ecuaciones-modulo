@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-BTCERXHYET"></script>
     <script>
@@ -12,12 +11,9 @@
       gtag('config', 'G-BTCERXHYET');
     </script>
 
-
-    
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ecuaciones con Módulo - App Móvil</title>
+    <title>Ecuaciones con Módulo - Profe Marcelo</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
 </head>
@@ -33,6 +29,7 @@
     <button id="btnPro" class="btn-mode" onclick="intentarDesbloquearPro()">👑 PRO</button>
 </div>
 
+<!-- Área de Código PRO -->
 <div id="area-ingreso-pro" style="display: none; margin-bottom: 15px; padding: 15px; background: #fff3cd; border-radius: 12px; border: 2px dashed #f1c40f; width: 100%; max-width: 950px; text-align: center;">
     <p style="margin-bottom: 10px; font-weight: bold; color: #333;">Ingresá el código secreto:</p>
     <input type="text" id="input-codigo-pro" style="margin-bottom: 10px; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px; width: 80%; max-width: 300px;" placeholder="Escribe aquí...">
@@ -40,7 +37,6 @@
     <button style="padding: 10px 20px; font-size: 16px; background: #f39c12; color: white; border: none; border-radius: 5px; cursor: pointer;" onclick="verificarCodigoPro()">Validar</button>
     <button style="padding: 10px 20px; font-size: 16px; background: #ccc; color: #333; border: none; border-radius: 5px; cursor: pointer; margin-left: 5px;" onclick="cancelarPro()">Cancelar</button>
     <p id="mensaje-error-pro" style="display: none; color: #d32f2f; font-weight: bold; margin-top: 10px;">❌ Código incorrecto</p>
-    <p id="mensaje-exito-pro" style="display: none; color: #2e7d32; font-weight: bold; margin-top: 10px;">✅ ¡Modo PRO activado!</p>
 </div>
 
 <div class="panel">
@@ -81,8 +77,14 @@
     </div>
 
     <div id="pantallaGraficos" class="tab-content">
+        <p style="text-align:center; font-size: 0.9em; color: #7f8c8d; margin-top:0;">Recta Numérica</p>
         <div id="canvas-container"></div>
     </div>
+
+    <!-- BOTÓN WHATSAPP -->
+    <button onclick="compartirWhatsApp()" style="width: 100%; margin-top: 20px; padding: 15px; background: #25D366; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1.1em; display: flex; align-items: center; justify-content: center; gap: 10px;">
+        <span>Compartir por WhatsApp</span> 📱
+    </button>
 </div>
 
 <script src="script.js"></script>
