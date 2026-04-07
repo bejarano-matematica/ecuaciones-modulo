@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- Google Analytics con tu ID -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-BTCERXHYET"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -11,7 +10,7 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ecuaciones con módulo. Prof: Bejarano, Juan Marcelo</title>
+    <title>Ecuaciones con módulo - Prof. Bejarano</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
 </head>
@@ -27,12 +26,12 @@
     <button id="btnPro" class="btn-mode" onclick="intentarDesbloquearPro()">👑 PRO</button>
 </div>
 
-<div id="area-ingreso-pro" style="display: none; margin-bottom: 15px; padding: 15px; background: #fff3cd; border-radius: 12px; border: 2px dashed #f1c40f; width: 100%; max-width: 950px; text-align: center;">
-    <p style="margin-bottom: 10px; font-weight: bold; color: #333;">Código de 5to A y B:</p>
-    <input type="text" id="input-codigo-pro" style="margin-bottom: 10px; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px; width: 80%;" placeholder="Ingresá 5toAB...">
-    <br>
-    <button style="padding: 10px; background: #f39c12; color: white; border: none; border-radius: 5px;" onclick="verificarCodigoPro()">Validar</button>
-    <button style="padding: 10px; background: #ccc; border: none; border-radius: 5px; margin-left: 5px;" onclick="cancelarPro()">Cerrar</button>
+<div id="area-ingreso-pro" style="display: none; margin-bottom: 15px; padding: 15px; background: #fff3cd; border-radius: 12px; border: 2px dashed #f1c40f; text-align: center;">
+    <p>Código de 5to A y B:</p>
+    <input type="text" id="input-codigo-pro" placeholder="Ingresá 5toAB...">
+    <br><br>
+    <button class="btn-validar btn-exito" style="width: auto; padding: 10px 20px;" onclick="verificarCodigoPro()">Validar</button>
+    <button class="btn-validar btn-espera" style="width: auto; padding: 10px 20px;" onclick="cancelarPro()">Cerrar</button>
     <p id="mensaje-error-pro" style="display: none; color: #d32f2f; font-weight: bold; margin-top: 10px;">❌ Código incorrecto</p>
 </div>
 
@@ -41,7 +40,7 @@
     
     <div class="controls">
         <div class="control-group"><label>a</label><input type="range" id="slA" min="-10" max="10" step="0.5" value="2"><span id="vA"></span></div>
-        <div class="control-group"><label>b</label><input type="range" id="slB" min="-10" max="10" step="0.5" value="3"><span id="vB"></span></div>
+        <div class="control-group"><label>b</label><input type="range" id="slB" min="-10" max="10" step="0.5" value="1"><span id="vB"></span></div>
         <div class="control-group"><label>h</label><input type="range" id="slH" min="-10" max="10" step="0.5" value="5"><span id="vH"></span></div>
         <div class="control-group locked" id="grpK"><label>k 👑</label><input type="range" id="slK" min="-10" max="10" step="0.5" value="0"><span id="vK"></span></div>
         <div class="control-group locked" id="grpN"><label>n 👑</label><input type="range" id="slN" min="-10" max="10" step="0.5" value="0"><span id="vN"></span></div>
@@ -49,7 +48,7 @@
         <div class="control-group locked" id="grpM"><label>m 👑</label><input type="range" id="slM" min="-10" max="10" step="0.5" value="0"><span id="vM"></span></div>
     </div>
 
-    <div style="font-size: 1.4em; text-align: center; margin: 15px 0; color: #2980b9;">
+    <div style="font-size: 1.3em; text-align: center; margin: 15px 0; color: #2980b9;">
         <strong><span id="eqActual"></span></strong>
     </div>
 
@@ -77,7 +76,7 @@
         <div id="canvas-container"></div>
     </div>
 
-    <button onclick="compartirWhatsApp()" style="width: 100%; margin-top: 20px; padding: 15px; background: #25D366; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1.1em;">
+    <button onclick="compartirWhatsApp()" style="width: 100%; margin-top: 20px; padding: 15px; background: #25D366; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1.1em; cursor: pointer;">
         Compartir por WhatsApp 📱
     </button>
 </div>
