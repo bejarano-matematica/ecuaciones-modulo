@@ -190,22 +190,23 @@ function resetBotones() {
     document.getElementById('btn2').className = "btn-validar btn-espera"; document.getElementById('btn2').innerText = "Validar 2";
 }
 
-// FIX ESPECIAL PARA MIT APP INVENTOR
 function compartirWhatsApp() {
     let eq = document.getElementById('eqActual').innerText;
-    let c1 = document.getElementById('despejeC1').innerText.replace(/\n/g, " ");
-    let c2 = document.getElementById('despejeC2').innerText.replace(/\n/g, " ");
     let sol = document.getElementById('solucion-final-text').innerText || "---";
 
-    let texto = `*Ecuación:* ${eq}%0A*Caso 1:* ${c1}%0A*Caso 2:* ${c2}%0A*Solución:* ${sol}`;
+    // Creamos el mensaje formateado
+    let texto = `*Ecuación:* ${eq}%0A*Solución:* ${sol}`;
     
-    // Intentamos primero el esquema nativo de Android, si falla usamos wa.me
-    let urlWhatsApp = "whatsapp://send?text=" + texto;
+    // Armamos la URL de WhatsApp
+    let urlWhatsApp = "https://api.whatsapp.com/send?text=" + texto;
     
-    try {
-        window.location.href = urlWhatsApp;
-    } catch (e) {
-        window.open("https://api.whatsapp.com/send?text=" + texto, '_blank');
+    // ESTO ES LO IMPORTANTE: Enviamos la URL a MIT App Inventor
+    // para que se active el bloque "WebViewStringChange"
+    if (window.AppInventor) {
+        window.AppInventor.setWebViewString(urlWhatsApp);
+    } else {
+        // Por si lo probás desde un navegador normal
+        window.open(urlWhatsApp, '_blank');
     }
 }
 
