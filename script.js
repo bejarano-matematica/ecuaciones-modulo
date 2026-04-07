@@ -6,17 +6,11 @@ let modoProActivo = false;
 
 function f(n) {
     let num = Number(n);
-    if (isNaN(num)) return "0";
     return Number.isInteger(num) ? num.toString() : num.toFixed(2);
 }
 
 window.onload = function() {
-    const proStatus = localStorage.getItem('moduloProBejarano');
-    if (proStatus === 'activado') {
-        setModo('pro');
-    } else {
-        setModo('basico');
-    }
+    if (localStorage.getItem('moduloProBejarano') === 'activado') setModo('pro');
     setTimeout(() => { if (typeof loop === "function") loop(); draw(); }, 500);
 };
 
@@ -50,26 +44,18 @@ function setModo(modo) {
         document.getElementById('grpN').classList.remove('locked');
         document.getElementById('grpM').classList.remove('locked');
     }
-    cancelarPro();
-    resetBotones();
-    if (typeof loop === "function") loop();
-    draw();
+    cancelarPro(); resetBotones(); draw();
 }
 
 function intentarDesbloquearPro() {
-    // Si ya es PRO, forzamos la interfaz PRO por si acaso
-    if (modoProActivo || localStorage.getItem('moduloProBejarano') === 'activado') {
-        setModo('pro');
-    } else {
-        document.getElementById('area-ingreso-pro').style.display = 'block';
-    }
+    if(modoProActivo || localStorage.getItem('moduloProBejarano') === 'activado') setModo('pro');
+    else document.getElementById('area-ingreso-pro').style.display = 'block';
 }
 
 function cancelarPro() { document.getElementById('area-ingreso-pro').style.display = 'none'; }
 
 function verificarCodigoPro() {
-    let input = document.getElementById('input-codigo-pro').value.trim();
-    if (btoa(input) === "NXRvQUI=") {
+    if (btoa(document.getElementById('input-codigo-pro').value.trim()) === "NXRvQUI=") {
         localStorage.setItem('moduloProBejarano', 'activado');
         setModo('pro');
     } else {
@@ -79,13 +65,13 @@ function verificarCodigoPro() {
 
 function setup() {
     let cont = document.getElementById('canvas-container');
-    let c = createCanvas(cont.offsetWidth || 350, 220); 
+    let c = createCanvas(cont.offsetWidth || 350, 240); 
     c.parent('canvas-container');
     actualizarMedidasCanvas();
 }
 
 function windowResized() {
-    resizeCanvas(document.getElementById('canvas-container').offsetWidth, 220);
+    resizeCanvas(document.getElementById('canvas-container').offsetWidth, 240);
     actualizarMedidasCanvas();
 }
 
@@ -101,7 +87,15 @@ function draw() {
         s.innerText = f(document.getElementById(id).value);
     });
 
-    let bT = b === 0 ? "0" : (b === 1 ? "" : (b === -1 ? "-" : f(b)));
+    if (b === 0) {
+        document.getElementById('eqActual').innerText = "Módulo sin variable (b=0)";
+        document.getElementById('step1').innerHTML = "No hay variable para despejar.";
+        document.getElementById('step2').innerHTML = "No hay variable para despejar.";
+        return;
+    }
+
+    let hC = h / b;
+    let bT = b === 1 ? "" : (b === -1 ? "-" : f(b));
     let hS = h >= 0 ? "-" : "+";
     let nP = (modoProActivo && n !== 0) ? (n > 0 ? ` + ${f(n)}x` : ` - ${f(Math.abs(n))}x`) : "";
     let mP = (modoProActivo && m !== 0) ? (m > 0 ? ` + ${f(m)}x` : ` - ${f(Math.abs(m))}x`) : "";
@@ -109,62 +103,61 @@ function draw() {
     
     document.getElementById('eqActual').innerText = `${a === 1 ? '' : (a === -1 ? '-' : f(a))}|${bT}x ${hS} ${f(Math.abs(h))}|${eqK}${nP} = ${f(e)}${mP}`;
 
-    if (b === 0) return;
-    let hC = h / b;
-
     // CONDICIONES
     document.getElementById('despejeC1').innerHTML = `${f(b)}x ${hS} ${f(Math.abs(h))} ≥ 0  =>  x ${b > 0 ? '≥' : '≤'} ${f(hC)}`;
     document.getElementById('despejeC2').innerHTML = `${f(b)}x ${hS} ${f(Math.abs(h))} < 0  =>  x ${b > 0 ? '<' : '>'} ${f(hC)}`;
 
-    // PASAJE DE TÉRMINOS CASO 1
-    let d1 = (a * b) + n - m;
-    let v1 = e - k + (a * h);
-    if (d1 !== 0) {
-        resX1 = v1 / d1;
-        esValida1 = (b > 0) ? (resX1 >= hC - 0.001) : (resX1 <= hC + 0.001);
-        let t1 = `Distributiva: ${f(a*b)}x ${a*(-h)>=0?'+':'-'} ${f(Math.abs(a*h))} ${eqK} ${nP} = ${f(e)} ${mP}<br>`;
-        t1 += `Agrupando: (${f(a*b)} ${n>=0?'+':'-'} ${f(Math.abs(n))} ${-m>=0?'+':'-'} ${f(Math.abs(-m))})x = ${f(e)} ${-k>=0?'+':'-'} ${f(Math.abs(-k))} ${a*h>=0?'+':'-'} ${f(Math.abs(a*h))}<br>`;
-        t1 += `<strong>${f(d1)}x = ${f(v1)}  =>  x₁ = ${f(resX1)}</strong>`;
-        document.getElementById('step1').innerHTML = t1;
-    }
+    // CASO 1
+    let cX1 = (a * b) + n - m;
+    let tI1 = e - k + (a * h);
+    resX1 = cX1 !== 0 ? tI1 / cX1 : null;
+    esValida1 = (b > 0) ? (resX1 >= hC - 0.01) : (resX1 <= hC + 0.01);
 
-    // PASAJE DE TÉRMINOS CASO 2
-    let d2 = (a * -b) + n - m;
-    let v2 = e - k - (a * h);
-    if (d2 !== 0) {
-        resX2 = v2 / d2;
-        esValida2 = (b > 0) ? (resX2 < hC + 0.001) : (resX2 > hC - 0.001);
-        let t2 = `Distributiva: ${f(a*-b)}x ${a*h>=0?'+':'-'} ${f(Math.abs(a*h))} ${eqK} ${nP} = ${f(e)} ${mP}<br>`;
-        t2 += `Agrupando: (${f(a*-b)} ${n>=0?'+':'-'} ${f(Math.abs(n))} ${-m>=0?'+':'-'} ${f(Math.abs(-m))})x = ${f(e)} ${-k>=0?'+':'-'} ${f(Math.abs(-k))} ${-a*h>=0?'+':'-'} ${f(Math.abs(-a*h))}<br>`;
-        t2 += `<strong>${f(d2)}x = ${f(v2)}  =>  x₂ = ${f(resX2)}</strong>`;
-        document.getElementById('step2').innerHTML = t2;
-    }
+    let step1HTML = `1) ${f(a*b)}x ${a*(-h)>=0?'+':'-'} ${f(Math.abs(a*h))} ${nP} = ${f(e)} ${-eqK.replace(/ /g,'')} ${mP}<br>`;
+    step1HTML += `2) (${f(a*b)} ${n>=0?'+':'-'} ${f(Math.abs(n))} ${-m>=0?'+':'-'} ${f(Math.abs(-m))})x = ${f(e)} ${-k>=0?'+':'-'} ${f(Math.abs(-k))} ${a*h>=0?'+':'-'} ${f(Math.abs(a*h))}<br>`;
+    step1HTML += `3) <strong>${f(cX1)}x = ${f(tI1)} => x₁ = ${f(resX1)}</strong>`;
+    document.getElementById('step1').innerHTML = step1HTML;
 
-    dibujarRecta(1, 70, hC, resX1, `Validez Caso 1`, "#3498db", "x₁", b > 0);
-    dibujarRecta(2, 160, hC, resX2, `Validez Caso 2`, "#e74c3c", "x₂", b > 0);
+    // CASO 2
+    let cX2 = (a * -b) + n - m;
+    let tI2 = e - k - (a * h);
+    resX2 = cX2 !== 0 ? tI2 / cX2 : null;
+    esValida2 = (b > 0) ? (resX2 < hC + 0.01) : (resX2 > hC - 0.01);
+
+    let step2HTML = `1) ${f(a*-b)}x ${a*h>=0?'+':'-'} ${f(Math.abs(a*h))} ${nP} = ${f(e)} ${-eqK.replace(/ /g,'')} ${mP}<br>`;
+    step2HTML += `2) (${f(a*-b)} ${n>=0?'+':'-'} ${f(Math.abs(n))} ${-m>=0?'+':'-'} ${f(Math.abs(-m))})x = ${f(e)} ${-k>=0?'+':'-'} ${f(Math.abs(-k))} ${-a*h>=0?'+':'-'} ${f(Math.abs(-a*h))}<br>`;
+    step2HTML += `3) <strong>${f(cX2)}x = ${f(tI2)} => x₂ = ${f(resX2)}</strong>`;
+    document.getElementById('step2').innerHTML = step2HTML;
+
+    dibujarRecta(1, 70, hC, resX1, b > 0);
+    dibujarRecta(2, 170, hC, resX2, b > 0);
     chequearSolucionFinal();
 }
 
-function dibujarRecta(caso, y, hC, xV, tit, col, lab, bP) {
-    fill(100); noStroke(); textSize(11); text(tit, 20, y - 35);
-    stroke(200); line(40, y, width-40, y);
+function dibujarRecta(caso, y, hC, xV, bP) {
+    stroke(230); strokeWeight(1);
+    for(let i=-15; i<=15; i++) {
+        let px = centroX + i*escala;
+        line(px, y-40, px, y+20);
+        if(i % 5 === 0) { fill(150); noStroke(); text(i, px-5, y+35); stroke(230); }
+    }
+    stroke(150); line(30, y, width-30, y);
     let pxC = centroX + hC * escala;
-    strokeWeight(4); stroke(46, 204, 113, 100); 
-    if ((caso === 1 && bP) || (caso === 2 && !bP)) line(pxC, y, width - 40, y); else line(pxC, y, 40, y);
-    strokeWeight(1); fill(caso === 1 ? 46 : 255); stroke(46, 204, 113);
-    ellipse(pxC, y, 10, 10);
+    strokeWeight(6); stroke(46, 204, 113, 80); 
+    if ((caso === 1 && bP) || (caso === 2 && !bP)) line(pxC, y, width - 30, y); else line(pxC, y, 30, y);
+    strokeWeight(1); fill(255); stroke(46, 204, 113); ellipse(pxC, y, 10, 10);
     if(xV !== null) {
         let pxS = centroX + xV * escala;
-        fill(col); noStroke(); ellipse(pxS, y, 12, 12);
-        fill(50); text(lab + "=" + f(xV), pxS-15, y-15);
+        fill(caso === 1 ? "#3498db" : "#e74c3c"); noStroke(); ellipse(pxS, y, 12, 12);
+        fill(0); text(`x${caso}=${f(xV)}`, pxS-15, y-15);
     }
 }
 
 function verificar(caso) {
-    let valida = (caso === 1) ? esValida1 : esValida2;
+    let v = (caso === 1) ? esValida1 : esValida2;
     if (caso === 1) validado1 = true; else validado2 = true;
-    document.getElementById('btn' + caso).className = "btn-validar " + (valida ? "btn-exito" : "btn-error");
-    document.getElementById('btn' + caso).innerText = valida ? "CORRECTO" : "FUERA";
+    document.getElementById('btn' + caso).className = "btn-validar " + (v ? "btn-exito" : "btn-error");
+    document.getElementById('btn' + caso).innerText = v ? "CORRECTO" : "FUERA";
     chequearSolucionFinal();
 }
 
@@ -187,15 +180,9 @@ function resetBotones() {
 
 function compartirWhatsApp() {
     let eq = document.getElementById('eqActual').innerText;
-    let sol = document.getElementById('solucion-final-text').innerText || "No validada";
-    let mensaje = `*Ecuación con Módulo*%0A*Original:* ${eq}%0A*Solución:* ${sol}`;
-    let url = "https://api.whatsapp.com/send?text=" + mensaje;
+    let url = "https://api.whatsapp.com/send?text=" + encodeURIComponent("Mi resolución: " + eq);
     if (typeof window.AppInventor !== 'undefined') window.AppInventor.setWebViewString(url);
     else window.open(url, '_blank');
 }
 
-document.querySelectorAll('input').forEach(i => i.oninput = () => { 
-    resetBotones(); 
-    if (typeof loop === "function") loop();
-    draw(); 
-});
+document.querySelectorAll('input').forEach(i => i.oninput = () => { resetBotones(); draw(); });
