@@ -1,95 +1,118 @@
-/**
- * LÓGICA DE ECUACIONES CON MÓDULO - VERSIÓN INTEGRADA
- * Desarrollado para 5to Año - Escuela Técnica
- */
-
-// 1. --- ESTADO GLOBAL Y PERSISTENCIA ---
+// --- VARIABLES DE ESTADO ---
 let esModoPro = false;
 
+// Al cargar la página/app
 window.onload = function() {
-    // Al cargar, verificamos si el alumno ya había activado el modo PRO antes
+    // 1. Verificamos si ya era PRO (Persistencia)
     if (localStorage.getItem('modoPro') === 'true') {
         activarInterfazPro();
     }
+
+    // 2. Inicializamos los escuchadores de los deslizadores
+    configurarEventos();
+    
+    // 3. Primera resolución con valores iniciales
+    resolverEcuacion();
 };
 
-// 2. --- FUNCIÓN DE ACCESO (CÓDIGO 5toAB) ---
-function verificarCodigo() {
-    const inputElement = document.getElementById('codigo-acceso');
-    if (!inputElement) return;
+// --- GESTIÓN DE DESLIZADORES ---
+function configurarEventos() {
+    // IDs de todos los inputs range
+    const ids = ['val-a', 'val-b', 'val-h', 'val-e', 'val-k'];
 
-    const codigoInput = inputElement.value.trim();
+    ids.forEach(id => {
+        const input = document.getElementById(id);
+        const display = document.getElementById(id + '-display');
+
+        if (input) {
+            // Cada vez que se mueva el slider...
+            input.addEventListener('input', () => {
+                if (display) display.innerText = input.value;
+                resolverEcuacion(); // Recalcular al instante
+            });
+        }
+    });
+}
+
+// --- LÓGICA DE ACCESO (CÓDIGO: 5toAB) ---
+function verificarCodigo() {
+    const input = document.getElementById('codigo-acceso');
+    if (!input) return;
+
+    const valorIngresado = input.value.trim();
     
-    // NXRvQUI= es el Base64 exacto de "5toAB"
-    if (btoa(codigoInput) === "NXRvQUI=") {
+    // btoa("5toAB") === "NXRvQUI="
+    if (btoa(valorIngresado) === "NXRvQUI=") {
         localStorage.setItem('modoPro', 'true');
         activarInterfazPro();
-        alert("✅ ¡Modo PRO activado! Parámetros k, n y m habilitados.");
-        
-        // Ocultar el modal o sección de login si existe
-        const modal = document.getElementById('modal-acceso');
-        if (modal) modal.style.display = 'none';
+        alert("✅ ¡Modo PRO activado con éxito!");
+        resolverEcuacion();
     } else {
-        alert("❌ Código incorrecto. Recordá que distingue mayúsculas (ej: 5toAB).");
+        alert("❌ Código incorrecto. Intentá de nuevo.");
     }
 }
 
 function activarInterfazPro() {
     esModoPro = true;
-    document.body.classList.add('pro-active');
-    
-    // Mostramos todos los elementos que tengan la clase 'controles-pro'
+    // Mostrar campos ocultos
     const elementosPro = document.querySelectorAll('.controles-pro');
-    elementosPro.forEach(el => {
-        el.style.display = 'block'; // O 'flex' según tu CSS
-    });
-
-    console.log("Sistema: Modo PRO inicializado.");
+    elementosPro.forEach(el => el.style.display = 'block');
+    // Ocultar el input de código una vez activado
+    const seccionAcceso = document.getElementById('seccion-acceso');
+    if (seccionAcceso) seccionAcceso.style.display = 'none';
 }
 
-// 3. --- LÓGICA MATEMÁTICA (Resumen de Resolución) ---
+// --- CÁLCULO MATEMÁTICO ---
 function resolverEcuacion() {
-    // Captura de valores (ejemplo: a|bx + h| + k = e)
-    const a = parseFloat(document.getElementById('val-a').value) || 1;
-    const b = parseFloat(document.getElementById('val-b').value) || 1;
-    const h = parseFloat(document.getElementById('val-h').value) || 0;
-    const e = parseFloat(document.getElementById('val-e').value) || 0;
+    // Captura de valores de los inputs
+    const a = parseFloat(document.getElementById('val-a')?.value) || 1;
+    const b = parseFloat(document.getElementById('val-b')?.value) || 1;
+    const h = parseFloat(document.getElementById('val-h')?.value) || 0;
+    const e = parseFloat(document.getElementById('val-e')?.value) || 0;
     
-    // Parámetros PRO (si no es PRO, valen 0)
-    const k = esModoPro ? (parseFloat(document.getElementById('val-k').value) || 0) : 0;
-    const n = esModoPro ? (parseFloat(document.getElementById('val-n').value) || 0) : 0;
-    
-    // Aquí iría tu fórmula de resolución: a|bx + h| = e - k - nx ...
-    // [Tu lógica actual de cálculo aquí]
-    
-    const resultado = `Resultado de la ecuación...`; // Ejemplo
-    document.getElementById('display-resultado').innerText = resultado;
+    // Si es PRO usa k, si no es 0
+    const k = esModoPro ? (parseFloat(document.getElementById('val-k')?.value) || 0) : 0;
+
+    // Ecuación: a|bx + h| + k = e  =>  |bx + h| = (e - k) / a
+    const argumentoModulo = (e - k) / a;
+    let textoResultado = "";
+
+    if (a === 0) {
+        textoResultado = "El coeficiente 'a' no puede ser 0";
+    } else if (argumentoModulo < 0) {
+        textoResultado = "Sin solución real (Módulo negativo)";
+    } else {
+        // Resolvemos las dos ramas del módulo
+        const x1 = (argumentoModulo - h) / b;
+        const x2 = (-argumentoModulo - h) / b;
+
+        // Formateo de números (tu pedido: enteros sin .0, decimales a 2)
+        const f1 = Number.isInteger(x1) ? x1 : x1.toFixed(2);
+        const f2 = Number.isInteger(x2) ? x2 : x2.toFixed(2);
+
+        textoResultado = `x₁ = ${f1} <br> x₂ = ${f2}`;
+    }
+
+    const display = document.getElementById('display-resultado');
+    if (display) display.innerHTML = textoResultado;
 }
 
-// 4. --- FUNCIÓN DE COMPARTIR (PUENTE CON APP INVENTOR) ---
-function compartirPorWhatsApp() {
-    const resultado = document.getElementById('display-resultado').innerText;
-    const nombreAlumno = document.getElementById('nombre-alumno')?.value || "Alumno";
-    
-    if (!resultado || resultado === "") {
-        alert("Primero debés resolver una ecuación.");
+// --- COMUNICACIÓN CON APP INVENTOR ---
+function compartirWhatsApp() {
+    const resultado = document.getElementById('display-resultado')?.innerText;
+    if (!resultado || resultado.includes("Mueva")) {
+        alert("Resolvé una ecuación primero.");
         return;
     }
 
-    const mensaje = `*Ecuaciones con Módulo*\n` +
-                    `Estudiante: ${nombreAlumno}\n` +
-                    `Resultado: ${resultado}\n` +
-                    `_Enviado desde la App de Matemática_`;
+    const mensaje = `*Ecuaciones con Módulo*\nResultado: ${resultado}`;
+    const url = "https://api.whatsapp.com/send?text=" + encodeURIComponent(mensaje);
 
-    const mensajeCodificado = encodeURIComponent(mensaje);
-    const urlWhatsApp = "https://api.whatsapp.com/send?text=" + mensajeCodificado;
-
-    // IMPORTANTE: Comunicación con el bloque 'WebViewStringChange' de App Inventor
     if (window.AppInventor) {
-        // Esto dispara el bloque de la foto que me pasaste
-        window.AppInventor.setWebViewString(urlWhatsApp);
+        // Envía la URL al ActivityStarter de tu App
+        window.AppInventor.setWebViewString(url);
     } else {
-        // Fallback para navegador de PC
-        window.open(urlWhatsApp, '_blank');
+        // Abre WhatsApp Web si estás en PC
+        window.open(url, '_blank');
     }
 }
