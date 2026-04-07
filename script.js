@@ -191,25 +191,40 @@ function resetBotones() {
 }
 
 function compartirWhatsApp() {
+    // 1. Capturamos la ecuación principal
     let eq = document.getElementById('eqActual').innerText;
-    let sol = document.getElementById('solucion-final-text').innerText || "---";
-    let c1 = document.getElementById('despejeC1').innerText.replace(/\n/g, " ");
-    let c2 = document.getElementById('despejeC2').innerText.replace(/\n/g, " ");
+    
+    // 2. Capturamos las condiciones (usamos innerText para que sea texto limpio)
+    let cond1 = document.getElementById('despejeC1').innerText.replace(/\n/g, " | ");
+    let cond2 = document.getElementById('despejeC2').innerText.replace(/\n/g, " | ");
+    
+    // 3. Capturamos los pasos del despeje
+    let pasos1 = document.getElementById('step1').innerText.replace(/\n/g, " | ");
+    let pasos2 = document.getElementById('step2').innerText.replace(/\n/g, " | ");
+    
+    // 4. Solución final
+    let sol = document.getElementById('solucion-final-text').innerText || "No validada";
 
-    // Creamos el mensaje con formato
-    let texto = `*Ecuación:* ${eq}%0A*Caso 1:* ${c1}%0A*Caso 2:* ${c2}%0A*Solución:* ${sol}`;
-    
-    // La URL de WhatsApp
-    let urlWhatsApp = "https://api.whatsapp.com/send?text=" + texto;
-    
-    // ESTA LÍNEA es la que activa el bloque de tu foto:
-    if (window.AppInventor) {
-        window.AppInventor.setWebViewString(urlWhatsApp);
+    // 5. Armamos el mensaje con emojis para que quede prolijo
+    let mensaje = `*Ecuación con Módulo* 📐%0A%0A`;
+    mensaje += `*Original:* ${eq}%0A%0A`;
+    mensaje += `🔵 *CASO 1* (Positivo)%0A- Condición: ${cond1}%0A- Pasos: ${pasos1}%0A%0A`;
+    mensaje += `🔴 *CASO 2* (Negativo)%0A- Condición: ${cond2}%0A- Pasos: ${pasos2}%0A%0A`;
+    mensaje += `🏆 *Solución Final:* ${sol}`;
+
+    // 6. La URL para WhatsApp
+    let urlFinal = "https://api.whatsapp.com/send?text=" + mensaje;
+
+    // 7. EL DISPARADOR PARA TU BLOQUE DE LA FOTO:
+    if (typeof window.AppInventor !== 'undefined') {
+        // Esto "despierta" al bloque WebViewStringChange
+        window.AppInventor.setWebViewString(urlFinal);
     } else {
-        // Por si lo probás en la PC antes de la APK
-        window.open(urlWhatsApp, '_blank');
+        // Por si lo probás en la compu
+        window.location.href = urlFinal;
     }
 }
+
 
 
 
