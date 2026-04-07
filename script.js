@@ -4,7 +4,6 @@ let esValida1 = false, esValida2 = false;
 let validado1 = false, validado2 = false;
 let modoProActivo = false;
 
-// Función para mostrar números bonitos (limpia .0)
 function f(n) {
     let num = Number(n);
     return Number.isInteger(num) ? num.toString() : num.toFixed(2);
@@ -106,19 +105,18 @@ function draw() {
     let mP = m === 0 ? "" : (m > 0 ? ` + ${f(m)}x` : ` - ${f(Math.abs(m))}x`);
     let eqK = (!modoProActivo || k === 0) ? "" : ` ${k >= 0 ? '+' : '-'} ${f(Math.abs(k))}`;
     
-    let eqTxt = `${a === 1 ? '' : (a === -1 ? '-' : f(a))}|${bT}x ${hS} ${f(Math.abs(h))}|${eqK}${nP} = ${f(e)}${mP}`;
-    document.getElementById('eqActual').innerText = eqTxt;
+    document.getElementById('eqActual').innerText = `${a === 1 ? '' : (a === -1 ? '-' : f(a))}|${bT}x ${hS} ${f(Math.abs(h))}|${eqK}${nP} = ${f(e)}${mP}`;
 
     if (b === 0) return;
 
     let hC = h / b;
     let bPos = b > 0;
 
-    // CONDICIONES
+    // CONDICIONES PEDAGÓGICAS
     document.getElementById('despejeC1').innerHTML = `${f(b)}x ${hS} ${f(Math.abs(h))} ≥ 0 <br> x ${bPos ? '≥' : '≤'} ${f(hC)}`;
     document.getElementById('despejeC2').innerHTML = `${f(b)}x ${hS} ${f(Math.abs(h))} < 0 <br> x ${bPos ? '<' : '>'} ${f(hC)}`;
 
-    // CASO 1
+    // CASO 1: PASO A PASO
     let d1 = (a * b) + n - m;
     let v1 = e - k + (a * h);
     if (d1 !== 0) {
@@ -130,7 +128,7 @@ function draw() {
         document.getElementById('step1').innerHTML = t1;
     }
 
-    // CASO 2
+    // CASO 2: PASO A PASO
     let d2 = (a * -b) + n - m;
     let v2 = e - k - (a * h);
     if (d2 !== 0) {
@@ -203,8 +201,8 @@ function compartirWhatsApp() {
 
     let msj = `*Ecuación con Módulo* 📐%0A%0A`;
     msj += `*Ecuación:* ${eq}%0A%0A`;
-    msj += `🔵 *CASO 1* (Positivo)%0ACondición: ${c1}%0APasos: ${s1}%0A${esValida1 ? '✅ Válida' : '❌ No válida'}%0A%0A`;
-    msj += `🔴 *CASO 2* (Negativo)%0ACondición: ${c2}%0APasos: ${s2}%0A${esValida2 ? '✅ Válida' : '❌ No válida'}%0A%0A`;
+    msj += `🔵 *CASO 1* (Positivo)%0ACondición: ${c1}%0APasos: ${s1}%0A%0A`;
+    msj += `🔴 *CASO 2* (Negativo)%0ACondición: ${c2}%0APasos: ${s2}%0A%0A`;
     msj += `🏆 *Solución Final:* ${sol}`;
 
     window.open(`https://wa.me/?text=${msj}`, '_blank');
