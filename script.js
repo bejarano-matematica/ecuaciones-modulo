@@ -11,40 +11,24 @@ function f(n) {
 }
 
 window.onload = function() {
-    // 1. Verificamos persistencia inmediatamente
     const proStatus = localStorage.getItem('moduloProBejarano');
     if (proStatus === 'activado') {
-        modoProActivo = true;
         setModo('pro');
     } else {
         setModo('basico');
     }
-    
-    // 2. Aseguramos que el canvas se dibuje
-    setTimeout(() => {
-        if (typeof loop === "function") loop();
-        draw();
-    }, 500);
+    setTimeout(() => { if (typeof loop === "function") loop(); draw(); }, 500);
 };
 
 function openTab(evt, tabName) {
     let i, tabcontent, tablinks;
     tabcontent = document.getElementsByClassName("tab-content");
     for (i = 0; i < tabcontent.length; i++) tabcontent[i].style.display = "none";
-    
     tablinks = document.getElementsByClassName("tab-link");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-    
+    for (i = 0; i < tablinks.length; i++) tablinks[i].className = tablinks[i].className.replace(" active", "");
     document.getElementById(tabName).style.display = "block";
     evt.currentTarget.className += " active";
-    
-    // IMPORTANTE: Al cambiar a la pestaña gráfico, forzamos el redibujado
-    if (tabName === 'pantallaGraficos') {
-        if (typeof loop === "function") loop();
-        draw();
-    }
+    if (tabName === 'pantallaGraficos') { if (typeof loop === "function") loop(); draw(); }
 }
 
 function setModo(modo) {
@@ -53,12 +37,7 @@ function setModo(modo) {
         document.getElementById('btnBásico').className = "btn-mode active-free";
         document.getElementById('btnPro').className = "btn-mode";
         document.getElementById('formulaRef').innerText = "Ecuación: a |bx - h| = e";
-        
-        // Reset de valores PRO
-        document.getElementById('slK').value = 0; 
-        document.getElementById('slN').value = 0; 
-        document.getElementById('slM').value = 0;
-        
+        document.getElementById('slK').value = 0; document.getElementById('slN').value = 0; document.getElementById('slM').value = 0;
         document.getElementById('grpK').classList.add('locked');
         document.getElementById('grpN').classList.add('locked');
         document.getElementById('grpM').classList.add('locked');
@@ -67,20 +46,18 @@ function setModo(modo) {
         document.getElementById('btnBásico').className = "btn-mode";
         document.getElementById('btnPro').className = "btn-mode active-pro";
         document.getElementById('formulaRef').innerText = "Ecuación: a |bx - h| + k + nx = e + mx";
-        
         document.getElementById('grpK').classList.remove('locked');
         document.getElementById('grpN').classList.remove('locked');
         document.getElementById('grpM').classList.remove('locked');
     }
-    
-    cancelarPro(); // Cerramos el panel de ingreso si estaba abierto
+    cancelarPro();
     resetBotones();
     if (typeof loop === "function") loop();
     draw();
 }
 
 function intentarDesbloquearPro() {
-    // Si ya es PRO por localStorage o variable, entra directo
+    // Si ya es PRO, forzamos la interfaz PRO por si acaso
     if (modoProActivo || localStorage.getItem('moduloProBejarano') === 'activado') {
         setModo('pro');
     } else {
@@ -88,9 +65,7 @@ function intentarDesbloquearPro() {
     }
 }
 
-function cancelarPro() { 
-    document.getElementById('area-ingreso-pro').style.display = 'none'; 
-}
+function cancelarPro() { document.getElementById('area-ingreso-pro').style.display = 'none'; }
 
 function verificarCodigoPro() {
     let input = document.getElementById('input-codigo-pro').value.trim();
@@ -99,82 +74,69 @@ function verificarCodigoPro() {
         setModo('pro');
     } else {
         document.getElementById('mensaje-error-pro').style.display = 'block';
-        setTimeout(() => {
-            document.getElementById('mensaje-error-pro').style.display = 'none';
-        }, 2000);
     }
 }
 
 function setup() {
     let cont = document.getElementById('canvas-container');
-    let w = cont.offsetWidth > 0 ? cont.offsetWidth : 350;
-    let c = createCanvas(w, 220); 
+    let c = createCanvas(cont.offsetWidth || 350, 220); 
     c.parent('canvas-container');
     actualizarMedidasCanvas();
 }
 
 function windowResized() {
-    let cont = document.getElementById('canvas-container');
-    resizeCanvas(cont.offsetWidth, 220);
+    resizeCanvas(document.getElementById('canvas-container').offsetWidth, 220);
     actualizarMedidasCanvas();
 }
 
-function actualizarMedidasCanvas() {
-    centroX = width / 2;
-    escala = width / 32; 
-}
+function actualizarMedidasCanvas() { centroX = width / 2; escala = width / 32; }
 
 function draw() {
     background(255);
-    
-    // Captura segura de elementos
-    const getV = (id) => parseFloat(document.getElementById(id).value);
-    
-    let a = getV('slA'), b = getV('slB'), h = getV('slH');
-    let k = getV('slK'), n = getV('slN'), e = getV('slE'), m = getV('slM');
+    const gV = (id) => parseFloat(document.getElementById(id).value);
+    let a = gV('slA'), b = gV('slB'), h = gV('slH'), k = gV('slK'), n = gV('slN'), e = gV('slE'), m = gV('slM');
 
-    // Actualizar etiquetas de valor
-    const ids = ['A', 'B', 'H', 'K', 'N', 'E', 'M'];
-    ids.forEach(id => {
-        let el = document.getElementById('v' + id);
-        if (el) el.innerText = f(getV('sl' + id));
+    document.querySelectorAll('.controls span').forEach(s => {
+        let id = s.id.replace('v', 'sl');
+        s.innerText = f(document.getElementById(id).value);
     });
 
-    // Construcción de texto de la ecuación
     let bT = b === 0 ? "0" : (b === 1 ? "" : (b === -1 ? "-" : f(b)));
     let hS = h >= 0 ? "-" : "+";
     let nP = (modoProActivo && n !== 0) ? (n > 0 ? ` + ${f(n)}x` : ` - ${f(Math.abs(n))}x`) : "";
     let mP = (modoProActivo && m !== 0) ? (m > 0 ? ` + ${f(m)}x` : ` - ${f(Math.abs(m))}x`) : "";
     let eqK = (modoProActivo && k !== 0) ? ` ${k >= 0 ? '+' : '-'} ${f(Math.abs(k))}` : "";
     
-    let eqTxt = `${a === 1 ? '' : (a === -1 ? '-' : f(a))}|${bT}x ${hS} ${f(Math.abs(h))}|${eqK}${nP} = ${f(e)}${mP}`;
-    document.getElementById('eqActual').innerText = eqTxt;
+    document.getElementById('eqActual').innerText = `${a === 1 ? '' : (a === -1 ? '-' : f(a))}|${bT}x ${hS} ${f(Math.abs(h))}|${eqK}${nP} = ${f(e)}${mP}`;
 
     if (b === 0) return;
     let hC = h / b;
 
     // CONDICIONES
-    document.getElementById('despejeC1').innerHTML = `${f(b)}x ${hS} ${f(Math.abs(h))} ≥ 0 <br> x ${b > 0 ? '≥' : '≤'} ${f(hC)}`;
-    document.getElementById('despejeC2').innerHTML = `${f(b)}x ${hS} ${f(Math.abs(h))} < 0 <br> x ${b > 0 ? '<' : '>'} ${f(hC)}`;
+    document.getElementById('despejeC1').innerHTML = `${f(b)}x ${hS} ${f(Math.abs(h))} ≥ 0  =>  x ${b > 0 ? '≥' : '≤'} ${f(hC)}`;
+    document.getElementById('despejeC2').innerHTML = `${f(b)}x ${hS} ${f(Math.abs(h))} < 0  =>  x ${b > 0 ? '<' : '>'} ${f(hC)}`;
 
-    // RESOLUCIÓN CASOS
+    // PASAJE DE TÉRMINOS CASO 1
     let d1 = (a * b) + n - m;
     let v1 = e - k + (a * h);
     if (d1 !== 0) {
         resX1 = v1 / d1;
         esValida1 = (b > 0) ? (resX1 >= hC - 0.001) : (resX1 <= hC + 0.001);
-        let t1 = `${f(a)}(${f(b)}x ${hS} ${f(Math.abs(h))})${eqK}${nP} = ${f(e)}${mP}<br>`;
-        t1 += `<strong>${f(d1)}x = ${f(v1)} | x₁ = ${f(resX1)}</strong>`;
+        let t1 = `Distributiva: ${f(a*b)}x ${a*(-h)>=0?'+':'-'} ${f(Math.abs(a*h))} ${eqK} ${nP} = ${f(e)} ${mP}<br>`;
+        t1 += `Agrupando: (${f(a*b)} ${n>=0?'+':'-'} ${f(Math.abs(n))} ${-m>=0?'+':'-'} ${f(Math.abs(-m))})x = ${f(e)} ${-k>=0?'+':'-'} ${f(Math.abs(-k))} ${a*h>=0?'+':'-'} ${f(Math.abs(a*h))}<br>`;
+        t1 += `<strong>${f(d1)}x = ${f(v1)}  =>  x₁ = ${f(resX1)}</strong>`;
         document.getElementById('step1').innerHTML = t1;
     }
 
+    // PASAJE DE TÉRMINOS CASO 2
     let d2 = (a * -b) + n - m;
     let v2 = e - k - (a * h);
     if (d2 !== 0) {
         resX2 = v2 / d2;
         esValida2 = (b > 0) ? (resX2 < hC + 0.001) : (resX2 > hC - 0.001);
-        let t2 = `${f(a)}[ -(${f(b)}x ${hS} ${f(Math.abs(h))}) ]${eqK}${nP} = ${f(e)}${mP}<br>`;
-        t2 += `<strong>${f(d2)}x = ${f(v2)} | x₂ = ${f(resX2)}</strong>`;
+        let t2 = `Distributiva: ${f(a*-b)}x ${a*h>=0?'+':'-'} ${f(Math.abs(a*h))} ${eqK} ${nP} = ${f(e)} ${mP}<br>`;
+        t2 += `Agrupando: (${f(a*-b)} ${n>=0?'+':'-'} ${f(Math.abs(n))} ${-m>=0?'+':'-'} ${f(Math.abs(-m))})x = ${f(e)} ${-k>=0?'+':'-'} ${f(Math.abs(-k))} ${-a*h>=0?'+':'-'} ${f(Math.abs(-a*h))}<br>`;
+        t2 += `<strong>${f(d2)}x = ${f(v2)}  =>  x₂ = ${f(resX2)}</strong>`;
         document.getElementById('step2').innerHTML = t2;
     }
 
@@ -184,20 +146,13 @@ function draw() {
 }
 
 function dibujarRecta(caso, y, hC, xV, tit, col, lab, bP) {
-    fill(100); noStroke(); textSize(12); text(tit, 20, y - 35);
+    fill(100); noStroke(); textSize(11); text(tit, 20, y - 35);
     stroke(200); line(40, y, width-40, y);
-    
     let pxC = centroX + hC * escala;
-    strokeWeight(4); stroke(46, 204, 113, 150); 
-    if ((caso === 1 && bP) || (caso === 2 && !bP)) {
-        line(pxC, y, width - 40, y);
-    } else {
-        line(pxC, y, 40, y);
-    }
-    
+    strokeWeight(4); stroke(46, 204, 113, 100); 
+    if ((caso === 1 && bP) || (caso === 2 && !bP)) line(pxC, y, width - 40, y); else line(pxC, y, 40, y);
     strokeWeight(1); fill(caso === 1 ? 46 : 255); stroke(46, 204, 113);
     ellipse(pxC, y, 10, 10);
-    
     if(xV !== null) {
         let pxS = centroX + xV * escala;
         fill(col); noStroke(); ellipse(pxS, y, 12, 12);
@@ -208,9 +163,8 @@ function dibujarRecta(caso, y, hC, xV, tit, col, lab, bP) {
 function verificar(caso) {
     let valida = (caso === 1) ? esValida1 : esValida2;
     if (caso === 1) validado1 = true; else validado2 = true;
-    let btn = document.getElementById('btn' + caso);
-    btn.className = "btn-validar " + (valida ? "btn-exito" : "btn-error");
-    btn.innerText = valida ? "CORRECTO" : "FUERA";
+    document.getElementById('btn' + caso).className = "btn-validar " + (valida ? "btn-exito" : "btn-error");
+    document.getElementById('btn' + caso).innerText = valida ? "CORRECTO" : "FUERA";
     chequearSolucionFinal();
 }
 
@@ -227,30 +181,21 @@ function chequearSolucionFinal() {
 function resetBotones() {
     validado1 = false; validado2 = false;
     document.getElementById('conclusion-panel').style.display = "none";
-    document.getElementById('btn1').className = "btn-validar btn-espera"; 
-    document.getElementById('btn1').innerText = "Validar 1";
-    document.getElementById('btn2').className = "btn-validar btn-espera"; 
-    document.getElementById('btn2').innerText = "Validar 2";
+    document.getElementById('btn1').className = "btn-validar btn-espera"; document.getElementById('btn1').innerText = "Validar 1";
+    document.getElementById('btn2').className = "btn-validar btn-espera"; document.getElementById('btn2').innerText = "Validar 2";
 }
 
 function compartirWhatsApp() {
     let eq = document.getElementById('eqActual').innerText;
     let sol = document.getElementById('solucion-final-text').innerText || "No validada";
-    let mensaje = `*Ecuación con Módulo*%0A*Ecuación:* ${eq}%0A*Solución:* ${sol}`;
-    let urlFinal = "https://api.whatsapp.com/send?text=" + mensaje;
-
-    if (typeof window.AppInventor !== 'undefined') {
-        window.AppInventor.setWebViewString(urlFinal);
-    } else {
-        window.open(urlFinal, '_blank');
-    }
+    let mensaje = `*Ecuación con Módulo*%0A*Original:* ${eq}%0A*Solución:* ${sol}`;
+    let url = "https://api.whatsapp.com/send?text=" + mensaje;
+    if (typeof window.AppInventor !== 'undefined') window.AppInventor.setWebViewString(url);
+    else window.open(url, '_blank');
 }
 
-// Escuchador global
-document.querySelectorAll('input').forEach(i => {
-    i.oninput = () => { 
-        resetBotones(); 
-        if (typeof loop === "function") loop();
-        draw(); 
-    };
+document.querySelectorAll('input').forEach(i => i.oninput = () => { 
+    resetBotones(); 
+    if (typeof loop === "function") loop();
+    draw(); 
 });
