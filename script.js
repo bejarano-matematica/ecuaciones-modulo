@@ -193,21 +193,26 @@ function resetBotones() {
 function compartirWhatsApp() {
     let eq = document.getElementById('eqActual').innerText;
     let sol = document.getElementById('solucion-final-text').innerText || "---";
+    let c1 = document.getElementById('despejeC1').innerText.replace(/\n/g, " ");
+    let c2 = document.getElementById('despejeC2').innerText.replace(/\n/g, " ");
 
-    // Creamos el mensaje formateado
-    let texto = `*Ecuación:* ${eq}%0A*Solución:* ${sol}`;
+    // Creamos el mensaje con formato
+    let texto = `*Ecuación:* ${eq}%0A*Caso 1:* ${c1}%0A*Caso 2:* ${c2}%0A*Solución:* ${sol}`;
     
-    // Armamos la URL de WhatsApp
+    // La URL de WhatsApp
     let urlWhatsApp = "https://api.whatsapp.com/send?text=" + texto;
     
-    // ESTO ES LO IMPORTANTE: Enviamos la URL a MIT App Inventor
-    // para que se active el bloque "WebViewStringChange"
+    // ESTA LÍNEA es la que activa el bloque de tu foto:
     if (window.AppInventor) {
         window.AppInventor.setWebViewString(urlWhatsApp);
     } else {
-        // Por si lo probás desde un navegador normal
+        // Por si lo probás en la PC antes de la APK
         window.open(urlWhatsApp, '_blank');
     }
 }
+
+
+
+
 
 document.querySelectorAll('input').forEach(i => i.oninput = () => { resetBotones(); draw(); });
