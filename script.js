@@ -7,12 +7,11 @@ let modoProActivo = false;
 // AL CARGAR LA APP: Verificamos si ya era PRO
 window.onload = function() {
     try {
-        // Memoria específica para los chicos de 5to
         if (localStorage.getItem('moduloProBejarano') === 'activado') {
             setModo('pro');
         }
     } catch (e) {
-        console.log("El celular no permite guardar memoria.");
+        console.log("Error de almacenamiento local.");
     }
 };
 
@@ -51,7 +50,7 @@ function setModo(modo) {
     resetBotones();
 }
 
-// === NUEVO SISTEMA PRO CON HASH (Apto para celulares) ===
+// SISTEMA PRO CON HASH (Contraseña: 5toAB)
 function intentarDesbloquearPro() {
     if(modoProActivo) return;
     document.getElementById('area-ingreso-pro').style.display = 'block';
@@ -65,16 +64,12 @@ function cancelarPro() {
 function verificarCodigoPro() {
     let codigo = document.getElementById('input-codigo-pro').value;
     let hashGenerado = btoa(codigo.trim());
-    
-    // Hash exacto para la contraseña: 5toAB
-    let hashCorrecto = "NXRvQUI="; 
+    let hashCorrecto = "NXRvQUI="; // Huella para 5toAB
 
     if (hashGenerado === hashCorrecto) {
         document.getElementById('mensaje-error-pro').style.display = 'none';
         document.getElementById('mensaje-exito-pro').style.display = 'block';
-        
         try { localStorage.setItem('moduloProBejarano', 'activado'); } catch(e) {}
-        
         setTimeout(() => {
             document.getElementById('area-ingreso-pro').style.display = 'none';
             setModo('pro');
@@ -84,7 +79,7 @@ function verificarCodigoPro() {
     }
 }
 
-// === CANVAS INTELIGENTE PARA CELULARES ===
+// CANVAS INTELIGENTE
 function setup() {
     let contenedorAncho = document.getElementById('canvas-container').offsetWidth || windowWidth * 0.9;
     let c = createCanvas(contenedorAncho, 220); 
@@ -100,7 +95,7 @@ function windowResized() {
 
 function actualizarMedidasCanvas() {
     centroX = width / 2;
-    escala = width / 32; // Ajuste dinámico para que los números no se amontonen en el celu
+    escala = width / 32; 
 }
 
 function draw() {
@@ -114,6 +109,7 @@ function draw() {
     let e = parseFloat(document.getElementById('slE').value);
     let m = parseFloat(document.getElementById('slM').value);
 
+    // Actualizar números al lado de los deslizadores
     document.querySelectorAll('.controls span').forEach(s => {
         let id = s.id.replace('v', 'sl');
         s.innerText = document.getElementById(id).value;
@@ -142,38 +138,23 @@ function draw() {
     let ineq1 = bPos ? "≥" : "≤";
     let ineq2 = bPos ? "<" : ">";
 
-    let cond1HTML = `${b_real}x ${hSign} ${hAbs} ≥ 0<br>${b_real}x ≥ ${h}<br>`;
-    cond1HTML += `x ${ineq1} ${h}/${b_real}<br><span style="color:green">x ${ineq1} ${hCritico.toFixed(2)}</span>`;
-    document.getElementById('despejeC1').innerHTML = cond1HTML;
+    document.getElementById('despejeC1').innerHTML = `${b_real}x ${hSign} ${hAbs} ≥ 0<br>x ${ineq1} ${hCritico.toFixed(2)}`;
+    document.getElementById('despejeC2').innerHTML = `${b_real}x ${hSign} ${hAbs} < 0<br>x ${ineq2} ${hCritico.toFixed(2)}`;
 
-    let cond2HTML = `${b_real}x ${hSign} ${hAbs} < 0<br>${b_real}x < ${h}<br>`;
-    cond2HTML += `x ${ineq2} ${h}/${b_real}<br><span style="color:green">x ${ineq2} ${hCritico.toFixed(2)}</span>`;
-    document.getElementById('despejeC2').innerHTML = cond2HTML;
-
-    // Caso 1
     let den1 = (a * b_calc) + n - m;
     let num1 = e - k + (a * h);
     if (den1 !== 0) {
         resX1 = num1 / den1;
         esValida1 = bPos ? (resX1 >= hCritico - 0.001) : (resX1 <= hCritico + 0.001);
-        
-        let txt1 = `${a}(${b_real}x ${hSign} ${hAbs}) ${eqK}${nPart} = ${e}${mPart}<br>`;
-        txt1 += `${(a*b_real).toFixed(1)}x ${a * -h >= 0 ? '+':''}${(a*-h).toFixed(1)} ${eqK}${nPart} = ${e}${mPart}<br>`;
-        txt1 += `${den1.toFixed(1)}x = ${num1.toFixed(1)}<br><strong>x₁ = ${resX1.toFixed(2)}</strong>`;
-        document.getElementById('step1').innerHTML = txt1;
+        document.getElementById('step1').innerHTML = `${den1.toFixed(1)}x = ${num1.toFixed(1)}<br><strong>x₁ = ${resX1.toFixed(2)}</strong>`;
     }
 
-    // Caso 2
     let den2 = (-a * b_calc) + n - m;
     let num2 = e - k - (a * h);
     if (den2 !== 0) {
         resX2 = num2 / den2;
         esValida2 = bPos ? (resX2 < hCritico + 0.001) : (resX2 > hCritico - 0.001);
-
-        let txt2 = `${a}[-(${b_real}x ${hSign} ${hAbs})] ${eqK}${nPart} = ${e}${mPart}<br>`;
-        txt2 += `${(-a*b_real).toFixed(1)}x ${-a * -h >= 0 ? '+':''}${( -a * -h).toFixed(1)} ${eqK}${nPart} = ${e}${mPart}<br>`;
-        txt2 += `${den2.toFixed(1)}x = ${num2.toFixed(1)}<br><strong>x₂ = ${resX2.toFixed(2)}</strong>`;
-        document.getElementById('step2').innerHTML = txt2;
+        document.getElementById('step2').innerHTML = `${den2.toFixed(1)}x = ${num2.toFixed(1)}<br><strong>x₂ = ${resX2.toFixed(2)}</strong>`;
     }
 
     dibujarRecta(1, 70, hCritico, resX1, `Validez Caso 1`, "#3498db", "x₁", bPos);
@@ -205,4 +186,34 @@ function dibujarRecta(caso, y, hCritico, xVal, titulo, colorPunto, labelPunto, b
 function verificar(caso) {
     if(caso === 1) {
         validado1 = true;
-        document.getElementById('btn1').className = esValida1 ? "btn-validar
+        document.getElementById('btn1').className = esValida1 ? "btn-validar btn-exito" : "btn-validar btn-error";
+        document.getElementById('btn1').innerText = esValida1 ? "CORRECTO" : "FUERA DE RANGO";
+    } else {
+        validado2 = true;
+        document.getElementById('btn2').className = esValida2 ? "btn-validar btn-exito" : "btn-validar btn-error";
+        document.getElementById('btn2').innerText = esValida2 ? "CORRECTO" : "FUERA DE RANGO";
+    }
+}
+
+function chequearSolucionFinal() {
+    if (validado1 && validado2) {
+        let sol = [];
+        if(esValida1) sol.push(resX1.toFixed(2));
+        if(esValida2) sol.push(resX2.toFixed(2));
+        sol.sort((a,b)=>a-b);
+        document.getElementById('solucion-final-text').innerText = sol.length ? `{ ${sol.join(" ; ")} }` : "∅";
+        document.getElementById('conclusion-panel').style.display = 'block';
+    }
+}
+
+function resetBotones() {
+    validado1 = false; validado2 = false;
+    document.getElementById('conclusion-panel').style.display = "none";
+    document.getElementById('btn1').className = "btn-validar btn-espera"; document.getElementById('btn1').innerText = "Validar Caso 1";
+    document.getElementById('btn2').className = "btn-validar btn-espera"; document.getElementById('btn2').innerText = "Validar Caso 2";
+}
+
+document.querySelectorAll('input').forEach(i => i.oninput = resetBotones);
+
+// DISPARADOR INICIAL (Para que no aparezca vacía)
+setTimeout(() => { draw(); }, 500);
