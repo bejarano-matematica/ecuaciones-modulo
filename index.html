@@ -1,64 +1,87 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <!-- Google Analytics con tu ID -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-BTCERXHYET"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-BTCERXHYET');
+    </script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ecuaciones con Módulo - 5to Año</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ecuaciones con módulo. Prof: Bejarano, Juan Marcelo</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
 </head>
 <body>
 
-    <div class="app-container">
-        <h1>Ecuaciones con Módulo</h1>
+<div class="nav-tabs">
+    <button class="tab-link active" onclick="openTab(event, 'pantallaCalculos')">🔢 Cálculos</button>
+    <button class="tab-link" onclick="openTab(event, 'pantallaGraficos')">📈 Gráfico</button>
+</div>
 
-        <div id="seccion-acceso" class="acceso-box">
-            <input type="text" id="codigo-acceso" placeholder="Código (ej: 5toAB)">
-            <button onclick="verificarCodigo()">Activar PRO</button>
-        </div>
+<div class="freemium-bar">
+    <button id="btnBásico" class="btn-mode active-free" onclick="setModo('basico')">Básico</button>
+    <button id="btnPro" class="btn-mode" onclick="intentarDesbloquearPro()">👑 PRO</button>
+</div>
 
-        <hr>
+<div id="area-ingreso-pro" style="display: none; margin-bottom: 15px; padding: 15px; background: #fff3cd; border-radius: 12px; border: 2px dashed #f1c40f; width: 100%; max-width: 950px; text-align: center;">
+    <p style="margin-bottom: 10px; font-weight: bold; color: #333;">Código de 5to A y B:</p>
+    <input type="text" id="input-codigo-pro" style="margin-bottom: 10px; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px; width: 80%;" placeholder="Ingresá 5toAB...">
+    <br>
+    <button style="padding: 10px; background: #f39c12; color: white; border: none; border-radius: 5px;" onclick="verificarCodigoPro()">Validar</button>
+    <button style="padding: 10px; background: #ccc; border: none; border-radius: 5px; margin-left: 5px;" onclick="cancelarPro()">Cerrar</button>
+    <p id="mensaje-error-pro" style="display: none; color: #d32f2f; font-weight: bold; margin-top: 10px;">❌ Código incorrecto</p>
+</div>
 
-        <div class="panel-controles">
-            
-            <div class="control-group">
-                <label>Coeficiente <b>a</b>: <span id="val-a-display" class="badge">1</span></label>
-                <input type="range" id="val-a" min="-10" max="10" step="0.5" value="1">
-            </div>
-
-            <div class="control-group">
-                <label>Coeficiente <b>b</b>: <span id="val-b-display" class="badge">1</span></label>
-                <input type="range" id="val-b" min="-10" max="10" step="0.5" value="1">
-            </div>
-
-            <div class="control-group">
-                <label>Desplazamiento <b>h</b>: <span id="val-h-display" class="badge">0</span></label>
-                <input type="range" id="id-h" min="-20" max="20" step="1" value="0">
-            </div>
-
-            <div class="control-group">
-                <label>Igualado a <b>e</b>: <span id="val-e-display" class="badge">5</span></label>
-                <input type="range" id="val-e" min="-20" max="20" step="1" value="5">
-            </div>
-
-            <div class="control-group controles-pro" style="display: none;">
-                <label>Parámetro <b>k</b>: <span id="val-k-display" class="badge">0</span></label>
-                <input type="range" id="val-k" min="-20" max="20" step="1" value="0">
-            </div>
-
-        </div>
-
-        <div class="resultado-container">
-            <h3>Resultado:</h3>
-            <div id="display-resultado" class="resultado-texto">
-                Esperando valores...
-            </div>
-        </div>
-
-        <button class="btn-whatsapp" onclick="compartirWhatsApp()">
-            Compartir por WhatsApp
-        </button>
+<div class="panel">
+    <div class="formula-ref" id="formulaRef">Ecuación: a |bx - h| = e</div>
+    
+    <div class="controls">
+        <div class="control-group"><label>a</label><input type="range" id="slA" min="-10" max="10" step="0.5" value="2"><span id="vA"></span></div>
+        <div class="control-group"><label>b</label><input type="range" id="slB" min="-10" max="10" step="0.5" value="3"><span id="vB"></span></div>
+        <div class="control-group"><label>h</label><input type="range" id="slH" min="-10" max="10" step="0.5" value="5"><span id="vH"></span></div>
+        <div class="control-group locked" id="grpK"><label>k 👑</label><input type="range" id="slK" min="-10" max="10" step="0.5" value="0"><span id="vK"></span></div>
+        <div class="control-group locked" id="grpN"><label>n 👑</label><input type="range" id="slN" min="-10" max="10" step="0.5" value="0"><span id="vN"></span></div>
+        <div class="control-group"><label>e</label><input type="range" id="slE" min="-10" max="10" step="0.5" value="7"><span id="vE"></span></div>
+        <div class="control-group locked" id="grpM"><label>m 👑</label><input type="range" id="slM" min="-10" max="10" step="0.5" value="0"><span id="vM"></span></div>
     </div>
 
-    <script src="script.js"></script>
+    <div style="font-size: 1.4em; text-align: center; margin: 15px 0; color: #2980b9;">
+        <strong><span id="eqActual"></span></strong>
+    </div>
+
+    <div id="pantallaCalculos" class="tab-content active">
+        <div class="math-box">
+            <div class="case">
+                <strong>Caso 1 (+)</strong>
+                <div class="condicion-despeje" id="despejeC1"></div>
+                <div id="step1" class="step-math"></div>
+                <button id="btn1" class="btn-validar btn-espera" onclick="verificar(1)">Validar 1</button>
+            </div>
+            <div class="case neg">
+                <strong>Caso 2 (-)</strong>
+                <div class="condicion-despeje" id="despejeC2"></div>
+                <div id="step2" class="step-math"></div>
+                <button id="btn2" class="btn-validar btn-espera" onclick="verificar(2)">Validar 2</button>
+            </div>
+        </div>
+        <div id="conclusion-panel">
+            <strong>Solución:</strong> <span id="solucion-final-text"></span>
+        </div>
+    </div>
+
+    <div id="pantallaGraficos" class="tab-content">
+        <div id="canvas-container"></div>
+    </div>
+
+    <button onclick="compartirWhatsApp()" style="width: 100%; margin-top: 20px; padding: 15px; background: #25D366; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1.1em;">
+        Compartir por WhatsApp 📱
+    </button>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
